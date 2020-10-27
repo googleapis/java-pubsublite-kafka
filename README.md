@@ -9,7 +9,7 @@
 </dependency>
 <dependency>
   <groupId>com.google.cloud</groupId>
-  <artifactId>pubsublite-kafka-shim</artifactId>
+  <artifactId>pubsublite-kafka</artifactId>
   <version>TODO: Make a release</version>
 </dependency>
 ```
