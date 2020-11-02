@@ -10,7 +10,7 @@
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>pubsublite-kafka</artifactId>
-  <version>TODO: Make a release</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
