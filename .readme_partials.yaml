@@ -1,0 +1,95 @@
+custom_content: |
+  #### Publishing messages
+  With Pub/Sub Lite, you can use a Producer<byte[], byte[]> to publish messages:
+  ```java
+  import com.google.cloud.pubsublite.kafka.ProducerSettings;
+  import org.apache.kafka.clients.producer.*;
+  import com.google.cloud.pubsublite.*;
+
+  ...
+
+  private final static String ZONE = "us-central1-b";
+  private final static Long PROJECT_NUM = 123L;
+
+  ...
+
+  TopicPath topic = TopicPath.newBuilder()
+      .setLocation(CloudZone.parse(ZONE))
+      .setProject(ProjectNumber.of(PROJECT_NUM))
+      .setName(TopicName.of("my-topic")).build();
+
+  ProducerSettings settings = ProducerSettings.newBuilder()
+      .setTopicPath(topic)
+      .build();
+
+  try (Producer<byte[], byte[]> producer = settings.instantiate()) {
+      Future<RecordMetadata> sent = producer.send(new ProducerRecord(
+          topic.toString(),  // Required to be the same topic.
+          "key".getBytes(),
+          "value".getBytes()
+      ));
+      RecordMetadata meta = sent.get();
+  }
+  ```
+  #### Receiving messages
+  With Pub/Sub Lite you can receive messages using a `Consumer<byte[], byte[]>`:
+  ```java
+  import com.google.cloud.pubsublite.kafka.ConsumerSettings;
+  import org.apache.kafka.clients.consumer.*;
+  import com.google.cloud.pubsublite.*;
+  import com.google.cloud.pubsublite.cloudpubsub.FlowControlSettings;
+
+  ...
+
+  private final static String ZONE = "us-central1-b";
+  private final static Long PROJECT_NUM = 123L;
+
+  ...
+
+  SubscriptionPath subscription = SubscriptionPath.newBuilder()
+      .setLocation(CloudZone.parse(ZONE))
+      .setProject(ProjectNumber.of(PROJECT_NUM))
+      .setName(SubscriptionName.of("my-sub"))
+      .build();
+
+  ConsumerSettings settings = ConsumerSettings.newBuilder()
+      .setSubscriptionPath(subscription)
+      .setPerPartitionFlowControlSettings(FlowControlSettings.builder()
+          .setBytesOutstanding(10_000_000)  // 10 MB
+          .setMessagesOutstanding(Long.MAX_VALUE)
+          .build())
+      .setAutocommit(true);
+
+  try (Consumer<byte[], byte[]> consumer = settings.instantiate()) {
+     while (true) {
+       ConsumerRecords<byte[], byte[]> records = consumer.poll(Long.MAX_VALUE);
+       for (ConsumerRecord<byte[], byte[]> record : records) {
+         System.out.println(record.offset() + “: ” + record.value());
+       }
+     }
+  } catch (WakeupException e) {
+     // ignored
+  }
+  ```
+about: |
+  [Google Pub/Sub Lite][product-docs] is designed to provide reliable,
+  many-to-many, asynchronous messaging between applications. Publisher
+  applications can send messages to a topic and other applications can
+  subscribe to that topic to receive the messages. By decoupling senders and
+  receivers, Google Cloud Pub/Sub allows developers to communicate between
+  independently written applications. See the
+  [Google Pub/Sub Lite docs](https://cloud.google.com/pubsub/quickstart-console#before-you-begin)
+  for more details on how to activate Pub/Sub Lite for your project, as well as
+  guidance on how to choose between Cloud Pub/Sub and Pub/Sub Lite.
+
+  Compared to Google Pub/Sub, Pub/Sub Lite provides partitioned zonal data
+  storage with predefined capacity. This means a large portion of the Kafka
+  Producer/Consumer API can be implemented using Pub/Sub Lite as a backend. The
+  key differences are:
+  - Pub/Sub Lite does not support transactions. All transaction methods on
+    `Producer<byte[], byte[]>` will raise an exception.
+  - Producers operate on a single topic, and Consumers on a single subscription.
+  - ProducerRecord may not specify partition explicitly.
+  - Consumers may not dynamically create consumer groups (subscriptions).
+  - `Consumer.offsetsForTimes` and `Consumer.endOffsets` will raise an
+    exception.
