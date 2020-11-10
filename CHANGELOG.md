@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.1.1](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.1.0...v0.1.1) (2020-11-10)
+
+
+### Documentation
+
+* Update version after a release happened ([26bc438](https://www.github.com/googleapis/java-pubsublite-kafka/commit/26bc438051c789221834b1801280bdbee54f0f64))
+
 ## 0.1.0 (2020-10-30)
 
 
