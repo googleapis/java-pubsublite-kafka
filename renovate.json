@@ -38,7 +38,7 @@
     },
     {
       "packagePatterns": [
-        "^com.google.cloud:google-cloud-pubsublite",
+        "^com.google.cloud:pubsublite-kafka",
         "^com.google.cloud:libraries-bom",
         "^com.google.cloud.samples:shared-configuration"
       ],
