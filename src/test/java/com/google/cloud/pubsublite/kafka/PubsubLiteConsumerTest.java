@@ -299,6 +299,7 @@ public class PubsubLiteConsumerTest {
     consumer.subscribe(ImmutableList.of(example(TopicPath.class).toString()), listener);
     verify(consumerFactory).newConsumer();
     verify(assignerFactory).New(any());
+    verify(assigner).startAsync();
     receiver.get().handleAssignment(ImmutableSet.of(Partition.of(5)));
     verify(listener)
         .onPartitionsAssigned(
