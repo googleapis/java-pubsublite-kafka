@@ -1,5 +1,17 @@
 # Changelog
 
+### [0.1.1](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.1.0...v0.1.1) (2020-11-18)
+
+
+### Bug Fixes
+
+* Start assigner when subscribe() is called ([#17](https://www.github.com/googleapis/java-pubsublite-kafka/issues/17)) ([f143f9d](https://www.github.com/googleapis/java-pubsublite-kafka/commit/f143f9dc23a760e7c0e8204ac7c6ba0ca2feb98a))
+
+
+### Documentation
+
+* Update version after a release happened ([26bc438](https://www.github.com/googleapis/java-pubsublite-kafka/commit/26bc438051c789221834b1801280bdbee54f0f64))
+
 ## 0.1.0 (2020-10-30)
 
 
