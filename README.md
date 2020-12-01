@@ -85,7 +85,7 @@
         .build();
    
     try (Consumer<byte[], byte[]> consumer = settings.instantiate()) {
-       consumer.subscribe(Arrays.asList());
+       consumer.subscribe(Arrays.asList(topic.toString()));
        while (true) {
          ConsumerRecords<byte[], byte[]> records = consumer.poll(Duration.ofSeconds(30));
          for (ConsumerRecord<byte[], byte[]> record : records) {
