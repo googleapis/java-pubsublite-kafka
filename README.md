@@ -63,6 +63,11 @@
     private final static Long PROJECT_NUM = 123L;
     
     ...
+    TopicPath topic = TopicPath.newBuilder()
+       .setLocation(CloudZone.parse(ZONE))
+       .setProject(ProjectNumber.of(PROJECT_NUM))
+       .setName(TopicName.of("my-topic"))
+       .build();
    
     SubscriptionPath subscription = SubscriptionPath.newBuilder()
         .setLocation(CloudZone.parse(ZONE))
@@ -80,6 +85,7 @@
         .build();
    
     try (Consumer<byte[], byte[]> consumer = settings.instantiate()) {
+       consumer.subscribe(Arrays.asList());
        while (true) {
          ConsumerRecords<byte[], byte[]> records = consumer.poll(Duration.ofSeconds(30));
          for (ConsumerRecord<byte[], byte[]> record : records) {
