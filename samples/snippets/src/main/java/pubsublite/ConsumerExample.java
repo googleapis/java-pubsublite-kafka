@@ -91,8 +91,8 @@ public class ConsumerExample {
           byte[] value = record.value();
           System.out.printf("Received %s: %s%n", offset, new String(value, StandardCharsets.UTF_8));
         }
-        // To keep the consumer alive indefinitely, do not break out of the while loop.
         if (!records.isEmpty()) {
+          // Early exit from the while loop.
           break;
         }
       }
