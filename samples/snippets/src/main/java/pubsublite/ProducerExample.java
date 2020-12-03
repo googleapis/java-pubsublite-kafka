@@ -67,11 +67,10 @@ public class ProducerExample {
                     topicPath.toString(), key.getBytes(), ("message-" + i).getBytes()));
         futures.add(future);
       }
-    }
-
-    for (Future<RecordMetadata> future : futures) {
-      RecordMetadata meta = future.get();
-      System.out.println(meta.offset());
+      for (Future<RecordMetadata> future : futures) {
+        RecordMetadata meta = future.get();
+        System.out.println(meta.offset());
+      }
     }
     System.out.printf("Published 10 messages to %s%n", topicPath.toString());
   }

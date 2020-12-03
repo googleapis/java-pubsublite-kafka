@@ -98,7 +98,7 @@ public class ConsumerExample {
           System.out.printf("Received %s: %s%n", offset, value);
         }
         // Early exit. Remove entirely to keep the consumer alive indefinitely.
-        if (hashSet.size() == 10) {
+        if (hashSet.size() >= 10) {
           System.out.println("Received 10 messages.");
           break;
         }
