@@ -164,7 +164,6 @@ public class QuickStartIT {
     bout.reset();
     // Subscribe.
     ConsumerExample.consumerExample(cloudRegion, zoneId, projectNumber, topicId, subscriptionId);
-    // Allow test to pass as long as one message is received.
-    assertThat(bout.toString()).contains(String.format("message-"));
+    assertThat(bout.toString()).contains("Received 10 messages.");
   }
 }

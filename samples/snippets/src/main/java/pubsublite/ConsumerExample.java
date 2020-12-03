@@ -26,9 +26,11 @@ import com.google.cloud.pubsublite.TopicName;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.cloudpubsub.FlowControlSettings;
 import com.google.cloud.pubsublite.kafka.ConsumerSettings;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -68,10 +70,10 @@ public class ConsumerExample {
 
     FlowControlSettings flowControlSettings =
         FlowControlSettings.builder()
-            // 10 MiB. Must be greater than the allowed size of the largest message (1 MiB).
-            .setBytesOutstanding(10 * 1024 * 1024L)
-            // 1,000 outstanding messages. Must be >0.
-            .setMessagesOutstanding(1000L)
+            // 50 MiB. Must be greater than the allowed size of the largest message (1 MiB).
+            .setBytesOutstanding(50 * 1024 * 1024L)
+            // 10,000 outstanding messages. Must be >0.
+            .setMessagesOutstanding(10000L)
             .build();
 
     ConsumerSettings settings =
@@ -81,18 +83,23 @@ public class ConsumerExample {
             .setAutocommit(true)
             .build();
 
+    Set<ConsumerRecord<byte[], byte[]>> hashSet = new HashSet<>();
     try (Consumer<byte[], byte[]> consumer = settings.instantiate()) {
+      // The consumer can only subscribe to the topic that it is associated to.
+      // If this is the only subscriber for this subscription, it will take up
+      // to 90s for the subscriber to warm up.
       consumer.subscribe(Arrays.asList(topicPath.toString()));
-      // It takes up to 90s for the subscriber to warm up.
       while (true) {
         ConsumerRecords<byte[], byte[]> records = consumer.poll(Duration.ofMillis(100));
         for (ConsumerRecord<byte[], byte[]> record : records) {
           long offset = record.offset();
-          byte[] value = record.value();
-          System.out.printf("Received %s: %s%n", offset, new String(value, StandardCharsets.UTF_8));
+          String value = Base64.getEncoder().encodeToString(record.value());
+          hashSet.add(record);
+          System.out.printf("Received %s: %s%n", offset, value);
         }
         // Early exit. Remove entirely to keep the consumer alive indefinitely.
-        if (!records.isEmpty()) {
+        if (hashSet.size() == 10) {
+          System.out.println("Received 10 messages.");
           break;
         }
       }

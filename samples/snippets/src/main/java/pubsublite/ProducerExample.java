@@ -23,6 +23,8 @@ import com.google.cloud.pubsublite.ProjectNumber;
 import com.google.cloud.pubsublite.TopicName;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.kafka.ProducerSettings;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.apache.kafka.clients.producer.Producer;
@@ -55,16 +57,21 @@ public class ProducerExample {
     ProducerSettings producerSettings =
         ProducerSettings.newBuilder().setTopicPath(topicPath).build();
 
-    for (long i = 0L; i < 10L; i++) {
-      String key = "demo";
-      try (Producer<byte[], byte[]> producer = producerSettings.instantiate()) {
-        Future<RecordMetadata> sent =
+    List<Future<RecordMetadata>> futures = new ArrayList<>();
+    try (Producer<byte[], byte[]> producer = producerSettings.instantiate()) {
+      for (long i = 0L; i < 10L; i++) {
+        String key = "demo";
+        Future<RecordMetadata> future =
             producer.send(
                 new ProducerRecord(
                     topicPath.toString(), key.getBytes(), ("message-" + i).getBytes()));
-        RecordMetadata meta = sent.get();
-        System.out.println(meta.offset());
+        futures.add(future);
       }
+    }
+
+    for (Future<RecordMetadata> future : futures) {
+      RecordMetadata meta = future.get();
+      System.out.println(meta.offset());
     }
     System.out.printf("Published 10 messages to %s%n", topicPath.toString());
   }
