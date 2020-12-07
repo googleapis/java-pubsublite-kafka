@@ -48,6 +48,7 @@ import org.junit.Test;
 public class QuickStartIT {
   private ByteArrayOutputStream bout;
   private PrintStream out;
+  private PrintStream console;
   Random rand = new Random();
 
   private static final Long projectNumber =
@@ -112,20 +113,22 @@ public class QuickStartIT {
 
     AdminClientSettings adminClientSettings =
         AdminClientSettings.newBuilder().setRegion(CloudRegion.of(cloudRegion)).build();
-
     try (AdminClient adminClient = AdminClient.create(adminClientSettings)) {
       adminClient.createTopic(topic).get();
       adminClient.createSubscription(subscription).get();
     }
 
     bout = new ByteArrayOutputStream();
+    // Store current System.out
+    console = System.out;
     out = new PrintStream(bout);
     System.setOut(out);
   }
 
   @After
   public void tearDown() throws Exception {
-    System.setOut(null);
+    // Use stored value for output stream
+    System.setOut(console);
     TopicPath topicPath =
         TopicPath.newBuilder()
             .setProject(ProjectNumber.of(projectNumber))
