@@ -44,6 +44,8 @@ public class ConsumerExample {
     // Use an existing Pub/Sub Lite topic and subscription.
     String topicId = "your-topic-id";
     String subscriptionId = "your-subscription-id";
+    // Using the project number here is required for constructing a Pub/Sub Lite
+    // topic path that the Kafka consumer can use.
     long projectNumber = Long.parseLong("123456789");
 
     consumerExample(cloudRegion, zoneId, projectNumber, topicId, subscriptionId);

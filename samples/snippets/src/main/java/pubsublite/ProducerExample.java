@@ -39,6 +39,8 @@ public class ProducerExample {
     char zoneId = 'b';
     // Use an existing Pub/Sub Lite topic.
     String topicId = "your-topic-id";
+    // Using the project number is required for constructing a Pub/Sub Lite
+    // topic path that the Kafka producer can use.
     long projectNumber = Long.parseLong("123456789");
 
     producerExample(cloudRegion, zoneId, projectNumber, topicId);
