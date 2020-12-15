@@ -28,8 +28,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.common.PartitionInfo;
 
 /** Shared behavior for producer and consumer. */
-final class SharedBehavior {
-  AdminClient client;
+final class SharedBehavior implements AutoCloseable {
+  private final AdminClient client;
 
   SharedBehavior(AdminClient client) {
     this.client = client;
@@ -56,5 +56,10 @@ final class SharedBehavior {
     } catch (Throwable t) {
       throw toKafka(t);
     }
+  }
+
+  @Override
+  public void close() {
+    client.close();
   }
 }

@@ -192,6 +192,11 @@ class PubsubLiteProducer implements Producer<byte[], byte[]> {
   @Override
   public void close(Duration duration) {
     try {
+      shared.close();
+    } catch (Exception e) {
+      logger.atSevere().withCause(e).log("Error closing admin client during Producer shutdown.");
+    }
+    try {
       publisher.stopAsync().awaitTerminated(duration.toMillis(), MILLISECONDS);
     } catch (TimeoutException e) {
       logger.atWarning().withCause(e).log("Failed to close publisher.");

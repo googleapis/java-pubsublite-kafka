@@ -19,6 +19,7 @@ package com.google.cloud.pubsublite.kafka;
 import static com.google.cloud.pubsublite.internal.testing.UnitTestExamples.example;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -72,5 +73,11 @@ public class SharedBehaviorTest {
     assertThrows(
         BrokerNotAvailableException.class,
         () -> shared.partitionsFor(example(TopicPath.class), Duration.ofMillis(10)));
+  }
+
+  @Test
+  public void close() {
+    shared.close();
+    verify(adminClient).close();
   }
 }

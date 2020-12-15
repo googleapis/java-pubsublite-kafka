@@ -30,7 +30,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.api.core.ApiFutures;
 import com.google.api.core.SettableApiFuture;
-import com.google.cloud.pubsublite.*;
+import com.google.cloud.pubsublite.AdminClient;
+import com.google.cloud.pubsublite.CloudZone;
+import com.google.cloud.pubsublite.Offset;
+import com.google.cloud.pubsublite.Partition;
+import com.google.cloud.pubsublite.ProjectNumber;
+import com.google.cloud.pubsublite.SubscriptionPath;
+import com.google.cloud.pubsublite.TopicName;
+import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.internal.CursorClient;
 import com.google.cloud.pubsublite.internal.testing.UnitTestExamples;
 import com.google.cloud.pubsublite.internal.wire.Assigner;
@@ -459,5 +466,12 @@ public class PubsubLiteConsumerTest {
         .thenReturn(ApiFutures.immediateFuture(2L));
     List<PartitionInfo> info = consumer.partitionsFor(example(TopicPath.class).toString());
     assertThat(info.size()).isEqualTo(2L);
+  }
+
+  @Test
+  public void close() {
+    consumer.close();
+    verify(adminClient).close();
+    verify(cursorClient).close();
   }
 }

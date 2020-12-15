@@ -511,6 +511,11 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
     } catch (Exception e) {
       logger.atSevere().withCause(e).log("Error closing cursor client during Consumer shutdown.");
     }
+    try {
+      shared.close();
+    } catch (Exception e) {
+      logger.atSevere().withCause(e).log("Error closing admin client during Consumer shutdown.");
+    }
     unsubscribe();
   }
 
