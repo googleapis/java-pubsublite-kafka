@@ -30,13 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.api.core.ApiFutures;
 import com.google.api.core.SettableApiFuture;
-import com.google.cloud.pubsublite.CloudZone;
-import com.google.cloud.pubsublite.Offset;
-import com.google.cloud.pubsublite.Partition;
-import com.google.cloud.pubsublite.ProjectNumber;
-import com.google.cloud.pubsublite.SubscriptionPath;
-import com.google.cloud.pubsublite.TopicName;
-import com.google.cloud.pubsublite.TopicPath;
+import com.google.cloud.pubsublite.*;
 import com.google.cloud.pubsublite.internal.CursorClient;
 import com.google.cloud.pubsublite.internal.testing.UnitTestExamples;
 import com.google.cloud.pubsublite.internal.wire.Assigner;
@@ -52,6 +46,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import com.google.common.reflect.ImmutableTypeToInstanceMap;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -61,6 +56,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.KafkaException;
+import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.TimeoutException;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
@@ -98,6 +94,7 @@ public class PubsubLiteConsumerTest {
   @Mock ConsumerFactory consumerFactory;
   @Mock AssignerFactory assignerFactory;
   @Mock CursorClient cursorClient;
+  @Mock AdminClient adminClient;
 
   @Mock Assigner assigner;
   @Mock SingleSubscriptionConsumer underlying;
@@ -111,7 +108,7 @@ public class PubsubLiteConsumerTest {
         new PubsubLiteConsumer(
             example(SubscriptionPath.class),
             example(TopicPath.class),
-            3,
+            new SharedBehavior(adminClient),
             consumerFactory,
             assignerFactory,
             cursorClient);
@@ -454,5 +451,13 @@ public class PubsubLiteConsumerTest {
         .doSeek(
             example(Partition.class),
             SeekRequest.newBuilder().setNamedTarget(NamedTarget.HEAD).build());
+  }
+
+  @Test
+  public void partitionsFor() {
+    when(adminClient.getTopicPartitionCount(example(TopicPath.class)))
+        .thenReturn(ApiFutures.immediateFuture(2L));
+    List<PartitionInfo> info = consumer.partitionsFor(example(TopicPath.class).toString());
+    assertThat(info.size()).isEqualTo(2L);
   }
 }

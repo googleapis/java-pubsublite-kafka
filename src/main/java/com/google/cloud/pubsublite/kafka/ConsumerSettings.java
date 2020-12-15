@@ -21,7 +21,6 @@ import com.google.auto.value.AutoValue;
 import com.google.cloud.pubsublite.AdminClient;
 import com.google.cloud.pubsublite.AdminClientSettings;
 import com.google.cloud.pubsublite.CloudZone;
-import com.google.cloud.pubsublite.PartitionLookupUtils;
 import com.google.cloud.pubsublite.SubscriptionPath;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.cloudpubsub.FlowControlSettings;
@@ -73,7 +72,6 @@ public abstract class ConsumerSettings {
         AdminClient.create(AdminClientSettings.newBuilder().setRegion(zone.region()).build())) {
       Subscription subscription = adminClient.getSubscription(subscriptionPath()).get();
       TopicPath topic = TopicPath.parse(subscription.getTopic());
-      long partitionCount = PartitionLookupUtils.numPartitions(topic);
       AssignerFactory assignerFactory =
           receiver -> {
             AssignerBuilder.Builder builder = AssignerBuilder.newBuilder();
@@ -110,14 +108,12 @@ public abstract class ConsumerSettings {
 
       CursorClient cursorClient =
           CursorClient.create(CursorClientSettings.newBuilder().setRegion(zone.region()).build());
-
+      SharedBehavior shared =
+          new SharedBehavior(
+              AdminClient.create(
+                  AdminClientSettings.newBuilder().setRegion(topic.location().region()).build()));
       return new PubsubLiteConsumer(
-          subscriptionPath(),
-          topic,
-          partitionCount,
-          consumerFactory,
-          assignerFactory,
-          cursorClient);
+          subscriptionPath(), topic, shared, consumerFactory, assignerFactory, cursorClient);
     } catch (Exception e) {
       throw ExtractStatus.toCanonical(e).underlying;
     }

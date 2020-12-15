@@ -16,16 +16,13 @@
 
 package com.google.cloud.pubsublite.kafka;
 
-import static com.google.cloud.pubsublite.ProjectLookupUtils.toCanonical;
-
 import com.google.api.gax.rpc.ApiException;
 import com.google.auto.value.AutoValue;
-import com.google.cloud.pubsublite.PartitionLookupUtils;
+import com.google.cloud.pubsublite.AdminClient;
+import com.google.cloud.pubsublite.AdminClientSettings;
 import com.google.cloud.pubsublite.TopicPath;
-import com.google.cloud.pubsublite.internal.wire.PubsubContext;
+import com.google.cloud.pubsublite.internal.wire.*;
 import com.google.cloud.pubsublite.internal.wire.PubsubContext.Framework;
-import com.google.cloud.pubsublite.internal.wire.RoutingPublisherBuilder;
-import com.google.cloud.pubsublite.internal.wire.SinglePartitionPublisherBuilder;
 import org.apache.kafka.clients.producer.Producer;
 
 @AutoValue
@@ -48,18 +45,23 @@ public abstract class ProducerSettings {
   }
 
   public Producer<byte[], byte[]> instantiate() throws ApiException {
-    TopicPath canonicalTopic = toCanonical(topicPath());
-    RoutingPublisherBuilder.Builder routingBuilder =
-        RoutingPublisherBuilder.newBuilder()
-            .setTopic(canonicalTopic)
+    PartitionCountWatchingPublisherSettings.Builder publisherSettings =
+        PartitionCountWatchingPublisherSettings.newBuilder()
+            .setTopic(topicPath())
             .setPublisherFactory(
                 partition ->
                     SinglePartitionPublisherBuilder.newBuilder()
                         .setContext(PubsubContext.of(FRAMEWORK))
-                        .setTopic(canonicalTopic)
+                        .setTopic(topicPath())
                         .setPartition(partition)
                         .build());
+    SharedBehavior shared =
+        new SharedBehavior(
+            AdminClient.create(
+                AdminClientSettings.newBuilder()
+                    .setRegion(topicPath().location().region())
+                    .build()));
     return new PubsubLiteProducer(
-        routingBuilder.build(), PartitionLookupUtils.numPartitions(canonicalTopic), canonicalTopic);
+        new PartitionCountWatchingPublisher(publisherSettings.build()), shared, topicPath());
   }
 }

@@ -18,17 +18,24 @@ package com.google.cloud.pubsublite.kafka;
 
 import static com.google.cloud.pubsublite.kafka.KafkaExceptionUtils.toKafka;
 
+import com.google.cloud.pubsublite.AdminClient;
 import com.google.cloud.pubsublite.Partition;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.common.collect.ImmutableList;
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.apache.kafka.common.PartitionInfo;
 
 /** Shared behavior for producer and consumer. */
 final class SharedBehavior {
-  private SharedBehavior() {}
+  AdminClient client;
 
-  static PartitionInfo toPartitionInfo(TopicPath topic, Partition partition) {
+  SharedBehavior(AdminClient client) {
+    this.client = client;
+  }
+
+  private static PartitionInfo toPartitionInfo(TopicPath topic, Partition partition) {
     return new PartitionInfo(
         topic.toString(),
         (int) partition.value(),
@@ -37,8 +44,10 @@ final class SharedBehavior {
         PubsubLiteNode.NODES);
   }
 
-  static List<PartitionInfo> partitionsFor(long partitionCount, TopicPath topic) {
+  List<PartitionInfo> partitionsFor(TopicPath topic, Duration timeout) {
     try {
+      long partitionCount =
+          client.getTopicPartitionCount(topic).get(timeout.toMillis(), TimeUnit.MILLISECONDS);
       ImmutableList.Builder<PartitionInfo> result = ImmutableList.builder();
       for (int i = 0; i < partitionCount; ++i) {
         result.add(toPartitionInfo(topic, Partition.of(i)));

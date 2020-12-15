@@ -23,30 +23,29 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.api.core.ApiFutures;
 import com.google.api.core.SettableApiFuture;
 import com.google.api.gax.rpc.StatusCode.Code;
-import com.google.cloud.pubsublite.Message;
-import com.google.cloud.pubsublite.Offset;
-import com.google.cloud.pubsublite.Partition;
-import com.google.cloud.pubsublite.PublishMetadata;
-import com.google.cloud.pubsublite.TopicName;
-import com.google.cloud.pubsublite.TopicPath;
+import com.google.cloud.pubsublite.*;
 import com.google.cloud.pubsublite.internal.CheckedApiException;
 import com.google.cloud.pubsublite.internal.Publisher;
 import com.google.cloud.pubsublite.internal.testing.FakeApiService;
 import com.google.common.collect.ImmutableMap;
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.ConsumerGroupMetadata;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
@@ -64,13 +63,16 @@ public class PubsubLiteProducerTest {
           example(TopicPath.class).toString(), (int) example(Partition.class).value());
 
   @Spy FakePublisher underlying;
+  @Mock AdminClient adminClient;
 
   Producer<byte[], byte[]> producer;
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    producer = new PubsubLiteProducer(underlying, 3, example(TopicPath.class));
+    producer =
+        new PubsubLiteProducer(
+            underlying, new SharedBehavior(adminClient), example(TopicPath.class));
     verify(underlying).startAsync();
     verify(underlying).awaitRunning();
   }
@@ -209,5 +211,13 @@ public class PubsubLiteProducerTest {
     producer.close();
     verify(underlying).stopAsync();
     verify(underlying).awaitTerminated(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+  }
+
+  @Test
+  public void partitionsFor() {
+    when(adminClient.getTopicPartitionCount(example(TopicPath.class)))
+        .thenReturn(ApiFutures.immediateFuture(2L));
+    List<PartitionInfo> info = producer.partitionsFor(example(TopicPath.class).toString());
+    assertThat(info.size()).isEqualTo(2L);
   }
 }
