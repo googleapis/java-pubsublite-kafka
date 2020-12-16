@@ -1,5 +1,17 @@
 # Changelog
 
+### [0.1.2](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.1.1...v0.1.2) (2020-12-16)
+
+
+### Bug Fixes
+
+* **readme:** update readme snippets ([#31](https://www.github.com/googleapis/java-pubsublite-kafka/issues/31)) ([cb262aa](https://www.github.com/googleapis/java-pubsublite-kafka/commit/cb262aaa170d3088d517457d445feeda612bc0f2))
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v0.6.5 ([#28](https://www.github.com/googleapis/java-pubsublite-kafka/issues/28)) ([3245f61](https://www.github.com/googleapis/java-pubsublite-kafka/commit/3245f61ff0800d0938ab171d4d2755289cd09b79))
+
 ### [0.1.1](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.1.0...v0.1.1) (2020-11-18)
 
 
