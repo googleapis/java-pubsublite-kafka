@@ -51,20 +51,21 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
 
 class PubsubLiteProducer implements Producer<byte[], byte[]> {
+  private static final Duration INFINITE_DURATION = Duration.ofMillis(Long.MAX_VALUE);
   private static final UnsupportedVersionException NO_TRANSACTIONS_EXCEPTION =
       new UnsupportedVersionException(
           "Pub/Sub Lite is a non-transactional system and does not support producer transactions.");
   private static final GoogleLogger logger = GoogleLogger.forEnclosingClass();
 
+  private final SharedBehavior shared;
   private final Publisher<PublishMetadata> publisher;
   private final TopicPath topicPath;
-  private final long partitionCount;
 
   PubsubLiteProducer(
-      Publisher<PublishMetadata> publisher, long partitionCount, TopicPath topicPath) {
+      Publisher<PublishMetadata> publisher, SharedBehavior shared, TopicPath topicPath) {
     this.publisher = publisher;
+    this.shared = shared;
     this.topicPath = topicPath;
-    this.partitionCount = partitionCount;
     this.publisher.addListener(
         new Listener() {
           @Override
@@ -175,7 +176,7 @@ class PubsubLiteProducer implements Producer<byte[], byte[]> {
   @Override
   public List<PartitionInfo> partitionsFor(String s) {
     checkTopic(s);
-    return SharedBehavior.partitionsFor(partitionCount, topicPath);
+    return shared.partitionsFor(topicPath, INFINITE_DURATION);
   }
 
   @Override
@@ -190,6 +191,11 @@ class PubsubLiteProducer implements Producer<byte[], byte[]> {
 
   @Override
   public void close(Duration duration) {
+    try {
+      shared.close();
+    } catch (Exception e) {
+      logger.atSevere().withCause(e).log("Error closing admin client during Producer shutdown.");
+    }
     try {
       publisher.stopAsync().awaitTerminated(duration.toMillis(), MILLISECONDS);
     } catch (TimeoutException e) {

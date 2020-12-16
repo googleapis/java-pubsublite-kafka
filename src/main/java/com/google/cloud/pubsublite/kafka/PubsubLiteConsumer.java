@@ -70,7 +70,7 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
   private static final GoogleLogger logger = GoogleLogger.forEnclosingClass();
   private final SubscriptionPath subscriptionPath;
   private final TopicPath topicPath;
-  private final long partitionCount;
+  private final SharedBehavior shared;
   private final ConsumerFactory consumerFactory;
   private final AssignerFactory assignerFactory;
   private final CursorClient cursorClient;
@@ -80,13 +80,13 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
   PubsubLiteConsumer(
       SubscriptionPath subscriptionPath,
       TopicPath topicPath,
-      long partitionCount,
+      SharedBehavior shared,
       ConsumerFactory consumerFactory,
       AssignerFactory assignerFactory,
       CursorClient cursorClient) {
     this.subscriptionPath = subscriptionPath;
     this.topicPath = topicPath;
-    this.partitionCount = partitionCount;
+    this.shared = shared;
     this.consumerFactory = consumerFactory;
     this.assignerFactory = assignerFactory;
     this.cursorClient = cursorClient;
@@ -440,7 +440,7 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
   @Override
   public List<PartitionInfo> partitionsFor(String topic, Duration timeout) {
     checkTopic(topic);
-    return SharedBehavior.partitionsFor(partitionCount, topicPath);
+    return shared.partitionsFor(topicPath, timeout);
   }
 
   @Override
@@ -510,6 +510,11 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
       cursorClient.close();
     } catch (Exception e) {
       logger.atSevere().withCause(e).log("Error closing cursor client during Consumer shutdown.");
+    }
+    try {
+      shared.close();
+    } catch (Exception e) {
+      logger.atSevere().withCause(e).log("Error closing admin client during Consumer shutdown.");
     }
     unsubscribe();
   }
