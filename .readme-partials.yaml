@@ -1,6 +1,6 @@
 custom_content: |
   #### Publishing messages
-  With Pub/Sub Lite, you can use a Producer<byte[], byte[]> to publish messages:
+  With Pub/Sub Lite, you can use a `Producer<byte[], byte[]>` to publish messages:
   ```java
   import com.google.cloud.pubsublite.kafka.ProducerSettings;
   import org.apache.kafka.clients.producer.*;
