@@ -31,7 +31,6 @@ import com.google.cloud.pubsublite.internal.CheckedApiException;
 import java.time.Duration;
 import java.util.List;
 import org.apache.kafka.common.PartitionInfo;
-import org.apache.kafka.common.errors.BrokerNotAvailableException;
 import org.apache.kafka.common.errors.InvalidRequestException;
 import org.junit.Before;
 import org.junit.Test;
