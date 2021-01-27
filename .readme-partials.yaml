@@ -72,13 +72,8 @@ custom_content: |
   }
   ```
 about: |
-  [Google Cloud Pub/Sub Lite][product-docs] is a zonal, real-time messaging
-  service that lets you send and receive messages between independent
-  applications. You can manually configure the throughput and storage capacity
-  for Pub/Sub Lite systems.
-
-  Because Pub/Sub Lite provides partitioned zonal data storage with
-  predefined capacity, a large portion of the Kafka Producer/Consumer API can
+  Because [Google Cloud Pub/Sub Lite][product-docs] provides partitioned zonal data storage with
+  predefined capacity. A large portion of the Kafka Producer/Consumer API can
   be implemented using Pub/Sub Lite as a backend. The key differences are:
   - Pub/Sub Lite does not support transactions. All transaction methods on
     `Producer<byte[], byte[]>` will raise an exception.
