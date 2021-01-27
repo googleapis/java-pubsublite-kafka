@@ -40,6 +40,8 @@
 
   <dependencies>
     <!-- TODO: switch to libraries-bom after this artifact is included -->
+    <!-- [START pubsublite-kafka_install_without_bom] -->
+    <!-- [START pubsublite-kafka_java_dependencies] -->
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>pubsublite-kafka</artifactId>
@@ -50,6 +52,8 @@
       <artifactId>kafka-clients</artifactId>
       <version>2.7.0</version>
     </dependency>
+    <!-- [END pubsublite-kafka_java_dependencies] -->
+    <!-- [END pubsublite-kafka_install_without_bom] -->
 
     <dependency>
       <groupId>junit</groupId>
