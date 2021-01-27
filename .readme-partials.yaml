@@ -73,7 +73,7 @@ custom_content: |
   ```
 about: |
   Because [Google Cloud Pub/Sub Lite][product-docs] provides partitioned zonal data storage with
-  predefined capacity. A large portion of the Kafka Producer/Consumer API can
+  predefined capacity, a large portion of the Kafka Producer/Consumer API can
   be implemented using Pub/Sub Lite as a backend. The key differences are:
   - Pub/Sub Lite does not support transactions. All transaction methods on
     `Producer<byte[], byte[]>` will raise an exception.
