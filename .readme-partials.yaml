@@ -72,20 +72,14 @@ custom_content: |
   }
   ```
 about: |
-  [Google Pub/Sub Lite][product-docs] is designed to provide reliable,
-  many-to-many, asynchronous messaging between applications. Publisher
-  applications can send messages to a topic and other applications can
-  subscribe to that topic to receive the messages. By decoupling senders and
-  receivers, Google Cloud Pub/Sub allows developers to communicate between
-  independently written applications. See the
-  [Google Pub/Sub Lite docs](https://cloud.google.com/pubsub/quickstart-console#before-you-begin)
-  for more details on how to activate Pub/Sub Lite for your project, as well as
-  guidance on how to choose between Cloud Pub/Sub and Pub/Sub Lite.
+  [Google Cloud Pub/Sub Lite][product-docs] is a zonal, real-time messaging
+  service that lets you send and receive messages between independent
+  applications. You can manually configure the throughput and storage capacity
+  for Pub/Sub Lite systems.
 
-  Compared to Google Pub/Sub, Pub/Sub Lite provides partitioned zonal data
-  storage with predefined capacity. This means a large portion of the Kafka
-  Producer/Consumer API can be implemented using Pub/Sub Lite as a backend. The
-  key differences are:
+  Because Pub/Sub Lite provides partitioned zonal data storage with
+  predefined capacity, a large portion of the Kafka Producer/Consumer API can
+  be implemented using Pub/Sub Lite as a backend. The key differences are:
   - Pub/Sub Lite does not support transactions. All transaction methods on
     `Producer<byte[], byte[]>` will raise an exception.
   - Producers operate on a single topic, and Consumers on a single subscription.
