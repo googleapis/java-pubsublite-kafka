@@ -16,6 +16,8 @@
 
 package com.google.cloud.pubsublite.kafka;
 
+import static com.google.cloud.pubsublite.internal.ExtractStatus.toCanonical;
+
 import com.google.api.gax.rpc.ApiException;
 import com.google.auto.value.AutoValue;
 import com.google.cloud.pubsublite.AdminClient;
@@ -23,6 +25,8 @@ import com.google.cloud.pubsublite.AdminClientSettings;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.internal.wire.*;
 import com.google.cloud.pubsublite.internal.wire.PubsubContext.Framework;
+import com.google.cloud.pubsublite.v1.PublisherServiceClient;
+import com.google.cloud.pubsublite.v1.PublisherServiceSettings;
 import org.apache.kafka.clients.producer.Producer;
 
 @AutoValue
@@ -45,23 +49,35 @@ public abstract class ProducerSettings {
   }
 
   public Producer<byte[], byte[]> instantiate() throws ApiException {
-    PartitionCountWatchingPublisherSettings.Builder publisherSettings =
+    PartitionCountWatchingPublisherSettings publisherSettings =
         PartitionCountWatchingPublisherSettings.newBuilder()
             .setTopic(topicPath())
             .setPublisherFactory(
-                partition ->
-                    SinglePartitionPublisherBuilder.newBuilder()
-                        .setContext(PubsubContext.of(FRAMEWORK))
+                partition -> {
+                  try {
+                    return SinglePartitionPublisherBuilder.newBuilder()
+                        .setServiceClient(
+                            PublisherServiceClient.create(
+                                ServiceClients.addDefaultSettings(
+                                    topicPath().location().region(),
+                                    ServiceClients.addDefaultMetadata(
+                                        PubsubContext.of(FRAMEWORK),
+                                        RoutingMetadata.of(topicPath(), partition),
+                                        PublisherServiceSettings.newBuilder()))))
                         .setTopic(topicPath())
                         .setPartition(partition)
-                        .build());
+                        .build();
+                  } catch (Throwable t) {
+                    throw toCanonical(t).underlying;
+                  }
+                })
+            .build();
     SharedBehavior shared =
         new SharedBehavior(
             AdminClient.create(
                 AdminClientSettings.newBuilder()
                     .setRegion(topicPath().location().region())
                     .build()));
-    return new PubsubLiteProducer(
-        new PartitionCountWatchingPublisher(publisherSettings.build()), shared, topicPath());
+    return new PubsubLiteProducer(publisherSettings.instantiate(), shared, topicPath());
   }
 }

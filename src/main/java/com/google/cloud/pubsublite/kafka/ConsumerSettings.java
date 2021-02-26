@@ -16,6 +16,8 @@
 
 package com.google.cloud.pubsublite.kafka;
 
+import static com.google.cloud.pubsublite.internal.ExtractStatus.toCanonical;
+
 import com.google.api.gax.rpc.ApiException;
 import com.google.auto.value.AutoValue;
 import com.google.cloud.pubsublite.AdminClient;
@@ -27,14 +29,22 @@ import com.google.cloud.pubsublite.cloudpubsub.FlowControlSettings;
 import com.google.cloud.pubsublite.internal.BufferingPullSubscriber;
 import com.google.cloud.pubsublite.internal.CursorClient;
 import com.google.cloud.pubsublite.internal.CursorClientSettings;
-import com.google.cloud.pubsublite.internal.ExtractStatus;
-import com.google.cloud.pubsublite.internal.wire.AssignerBuilder;
 import com.google.cloud.pubsublite.internal.wire.AssignerFactory;
-import com.google.cloud.pubsublite.internal.wire.CommitterBuilder;
+import com.google.cloud.pubsublite.internal.wire.AssignerSettings;
+import com.google.cloud.pubsublite.internal.wire.CommitterSettings;
 import com.google.cloud.pubsublite.internal.wire.PubsubContext;
 import com.google.cloud.pubsublite.internal.wire.PubsubContext.Framework;
+import com.google.cloud.pubsublite.internal.wire.RoutingMetadata;
+import com.google.cloud.pubsublite.internal.wire.ServiceClients;
 import com.google.cloud.pubsublite.internal.wire.SubscriberBuilder;
+import com.google.cloud.pubsublite.internal.wire.SubscriberFactory;
 import com.google.cloud.pubsublite.proto.Subscription;
+import com.google.cloud.pubsublite.v1.CursorServiceClient;
+import com.google.cloud.pubsublite.v1.CursorServiceSettings;
+import com.google.cloud.pubsublite.v1.PartitionAssignmentServiceClient;
+import com.google.cloud.pubsublite.v1.PartitionAssignmentServiceSettings;
+import com.google.cloud.pubsublite.v1.SubscriberServiceClient;
+import com.google.cloud.pubsublite.v1.SubscriberServiceSettings;
 import org.apache.kafka.clients.consumer.Consumer;
 
 @AutoValue
@@ -74,33 +84,63 @@ public abstract class ConsumerSettings {
       TopicPath topic = TopicPath.parse(subscription.getTopic());
       AssignerFactory assignerFactory =
           receiver -> {
-            AssignerBuilder.Builder builder = AssignerBuilder.newBuilder();
-            builder.setReceiver(receiver);
-            builder.setSubscriptionPath(subscriptionPath());
-            return builder.build();
+            try {
+              return AssignerSettings.newBuilder()
+                  .setReceiver(receiver)
+                  .setSubscriptionPath(subscriptionPath())
+                  .setServiceClient(
+                      PartitionAssignmentServiceClient.create(
+                          ServiceClients.addDefaultSettings(
+                              subscriptionPath().location().region(),
+                              PartitionAssignmentServiceSettings.newBuilder())))
+                  .build()
+                  .instantiate();
+            } catch (Throwable t) {
+              throw toCanonical(t).underlying;
+            }
           };
       PullSubscriberFactory pullSubscriberFactory =
           (partition, initialSeek) -> {
-            SubscriberBuilder.Builder builder =
-                SubscriberBuilder.newBuilder()
-                    .setContext(PubsubContext.of(FRAMEWORK))
-                    .setPartition(partition)
-                    .setSubscriptionPath(subscriptionPath());
-            return new BufferingPullSubscriber(
+            SubscriberFactory subscriberFactory =
                 consumer -> {
-                  synchronized (builder) {
-                    return builder.setMessageConsumer(consumer).build();
+                  try {
+                    return SubscriberBuilder.newBuilder()
+                        .setPartition(partition)
+                        .setSubscriptionPath(subscriptionPath())
+                        .setMessageConsumer(consumer)
+                        .setServiceClient(
+                            SubscriberServiceClient.create(
+                                ServiceClients.addDefaultSettings(
+                                    subscriptionPath().location().region(),
+                                    ServiceClients.addDefaultMetadata(
+                                        PubsubContext.of(FRAMEWORK),
+                                        RoutingMetadata.of(subscriptionPath(), partition),
+                                        SubscriberServiceSettings.newBuilder()))))
+                        .build();
+                  } catch (Throwable t) {
+                    throw toCanonical(t).underlying;
                   }
-                },
-                perPartitionFlowControlSettings(),
-                initialSeek);
+                };
+            return new BufferingPullSubscriber(
+                subscriberFactory, perPartitionFlowControlSettings(), initialSeek);
           };
       CommitterFactory committerFactory =
-          partition ->
-              CommitterBuilder.newBuilder()
+          partition -> {
+            try {
+              return CommitterSettings.newBuilder()
                   .setSubscriptionPath(subscriptionPath())
                   .setPartition(partition)
-                  .build();
+                  .setServiceClient(
+                      CursorServiceClient.create(
+                          ServiceClients.addDefaultSettings(
+                              subscriptionPath().location().region(),
+                              CursorServiceSettings.newBuilder())))
+                  .build()
+                  .instantiate();
+            } catch (Throwable t) {
+              throw toCanonical(t);
+            }
+          };
       ConsumerFactory consumerFactory =
           () ->
               new SingleSubscriptionConsumerImpl(
@@ -115,7 +155,7 @@ public abstract class ConsumerSettings {
       return new PubsubLiteConsumer(
           subscriptionPath(), topic, shared, consumerFactory, assignerFactory, cursorClient);
     } catch (Exception e) {
-      throw ExtractStatus.toCanonical(e).underlying;
+      throw toCanonical(e).underlying;
     }
   }
 }
