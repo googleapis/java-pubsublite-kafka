@@ -28,9 +28,9 @@ import com.google.api.core.SettableApiFuture;
 import com.google.api.gax.rpc.StatusCode.Code;
 import com.google.cloud.pubsublite.AdminClient;
 import com.google.cloud.pubsublite.Message;
+import com.google.cloud.pubsublite.MessageMetadata;
 import com.google.cloud.pubsublite.Offset;
 import com.google.cloud.pubsublite.Partition;
-import com.google.cloud.pubsublite.PublishMetadata;
 import com.google.cloud.pubsublite.TopicName;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.internal.CheckedApiException;
@@ -58,7 +58,7 @@ import org.mockito.Spy;
 @RunWith(JUnit4.class)
 public class PubsubLiteProducerTest {
   abstract static class FakePublisher extends FakeApiService
-      implements Publisher<PublishMetadata> {}
+      implements Publisher<MessageMetadata> {}
 
   private static final ProducerRecord<byte[], byte[]> RECORD =
       new ProducerRecord<>(
@@ -129,11 +129,11 @@ public class PubsubLiteProducerTest {
 
   @Test
   public void sendSuccess() throws Exception {
-    SettableApiFuture<PublishMetadata> response = SettableApiFuture.create();
+    SettableApiFuture<MessageMetadata> response = SettableApiFuture.create();
     when(underlying.publish(MESSAGE)).thenReturn(response);
     Future<RecordMetadata> future = producer.send(RECORD);
     verify(underlying).publish(MESSAGE);
-    response.set(PublishMetadata.of(example(Partition.class), example(Offset.class)));
+    response.set(MessageMetadata.of(example(Partition.class), example(Offset.class)));
     // RecordMetadata doesn't define a equals implementation.
     RecordMetadata metadata = future.get();
     assertThat(metadata.topic()).isEqualTo(example(TopicPath.class).toString());
@@ -145,7 +145,7 @@ public class PubsubLiteProducerTest {
 
   @Test
   public void sendSuccessWithCallback() throws Exception {
-    SettableApiFuture<PublishMetadata> response = SettableApiFuture.create();
+    SettableApiFuture<MessageMetadata> response = SettableApiFuture.create();
     SettableApiFuture<RecordMetadata> leaked = SettableApiFuture.create();
     when(underlying.publish(MESSAGE)).thenReturn(response);
     Future<RecordMetadata> future =
@@ -159,7 +159,7 @@ public class PubsubLiteProducerTest {
               }
             });
     verify(underlying).publish(MESSAGE);
-    response.set(PublishMetadata.of(example(Partition.class), example(Offset.class)));
+    response.set(MessageMetadata.of(example(Partition.class), example(Offset.class)));
     // RecordMetadata doesn't define a equals implementation.
     RecordMetadata metadata = leaked.get();
     assertThat(metadata.topic()).isEqualTo(example(TopicPath.class).toString());
@@ -177,7 +177,7 @@ public class PubsubLiteProducerTest {
 
   @Test
   public void sendError() {
-    SettableApiFuture<PublishMetadata> response = SettableApiFuture.create();
+    SettableApiFuture<MessageMetadata> response = SettableApiFuture.create();
     when(underlying.publish(MESSAGE)).thenReturn(response);
     Future<RecordMetadata> future = producer.send(RECORD);
     verify(underlying).publish(MESSAGE);
@@ -187,7 +187,7 @@ public class PubsubLiteProducerTest {
 
   @Test
   public void sendErrorWithCallback() {
-    SettableApiFuture<PublishMetadata> response = SettableApiFuture.create();
+    SettableApiFuture<MessageMetadata> response = SettableApiFuture.create();
     SettableApiFuture<RecordMetadata> leaked = SettableApiFuture.create();
     when(underlying.publish(MESSAGE)).thenReturn(response);
     Future<RecordMetadata> future =

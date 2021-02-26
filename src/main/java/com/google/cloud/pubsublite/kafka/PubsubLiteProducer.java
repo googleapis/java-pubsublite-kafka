@@ -25,7 +25,7 @@ import com.google.api.core.ApiFutures;
 import com.google.api.core.ApiService.Listener;
 import com.google.api.core.ApiService.State;
 import com.google.api.gax.rpc.ApiException;
-import com.google.cloud.pubsublite.PublishMetadata;
+import com.google.cloud.pubsublite.MessageMetadata;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.internal.ExtractStatus;
 import com.google.cloud.pubsublite.internal.Publisher;
@@ -58,11 +58,11 @@ class PubsubLiteProducer implements Producer<byte[], byte[]> {
   private static final GoogleLogger logger = GoogleLogger.forEnclosingClass();
 
   private final SharedBehavior shared;
-  private final Publisher<PublishMetadata> publisher;
+  private final Publisher<MessageMetadata> publisher;
   private final TopicPath topicPath;
 
   PubsubLiteProducer(
-      Publisher<PublishMetadata> publisher, SharedBehavior shared, TopicPath topicPath) {
+      Publisher<MessageMetadata> publisher, SharedBehavior shared, TopicPath topicPath) {
     this.publisher = publisher;
     this.shared = shared;
     this.topicPath = topicPath;
@@ -127,7 +127,7 @@ class PubsubLiteProducer implements Producer<byte[], byte[]> {
       throw new UnsupportedOperationException(
           "Pub/Sub Lite producers may not specify a partition in their records.");
     }
-    ApiFuture<PublishMetadata> future =
+    ApiFuture<MessageMetadata> future =
         publisher.publish(RecordTransforms.toMessage(producerRecord));
     return ApiFutures.transform(
         future,
