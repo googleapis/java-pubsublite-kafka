@@ -48,10 +48,16 @@ public abstract class ProducerSettings {
     public abstract ProducerSettings build();
   }
 
+  private AdminClient newAdminClient() {
+    return AdminClient.create(
+        AdminClientSettings.newBuilder().setRegion(topicPath().location().region()).build());
+  }
+
   public Producer<byte[], byte[]> instantiate() throws ApiException {
     PartitionCountWatchingPublisherSettings publisherSettings =
         PartitionCountWatchingPublisherSettings.newBuilder()
             .setTopic(topicPath())
+            .setAdminClient(newAdminClient())
             .setPublisherFactory(
                 partition -> {
                   try {
@@ -72,12 +78,7 @@ public abstract class ProducerSettings {
                   }
                 })
             .build();
-    SharedBehavior shared =
-        new SharedBehavior(
-            AdminClient.create(
-                AdminClientSettings.newBuilder()
-                    .setRegion(topicPath().location().region())
-                    .build()));
+    SharedBehavior shared = new SharedBehavior(newAdminClient());
     return new PubsubLiteProducer(publisherSettings.instantiate(), shared, topicPath());
   }
 }
