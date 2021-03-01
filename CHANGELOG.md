@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.2.1](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.2.0...v0.2.1) (2021-03-01)
+
+
+### Bug Fixes
+
+* Add admin client in producer settings ([#82](https://www.github.com/googleapis/java-pubsublite-kafka/issues/82)) ([c1cf1d1](https://www.github.com/googleapis/java-pubsublite-kafka/commit/c1cf1d1ff5d44d67219da61bb85120774bb6a724))
+
 ## [0.2.0](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.1.1...v0.2.0) (2021-02-26)
 
 
