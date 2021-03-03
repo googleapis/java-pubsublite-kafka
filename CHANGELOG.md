@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.2.3](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.2.2...v0.2.3) (2021-03-03)
+
+
+### Bug Fixes
+
+* Add default batching in producer settings ([#96](https://www.github.com/googleapis/java-pubsublite-kafka/issues/96)) ([a79b2a3](https://www.github.com/googleapis/java-pubsublite-kafka/commit/a79b2a330b055aea93d6f702c2fbff28757aca79))
+
 ### [0.2.2](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.2.1...v0.2.2) (2021-03-02)
 
 
