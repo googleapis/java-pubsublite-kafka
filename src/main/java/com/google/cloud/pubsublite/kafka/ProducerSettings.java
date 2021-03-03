@@ -16,6 +16,7 @@
 
 package com.google.cloud.pubsublite.kafka;
 
+import static com.google.cloud.pubsublite.cloudpubsub.PublisherSettings.DEFAULT_BATCHING_SETTINGS;
 import static com.google.cloud.pubsublite.internal.ExtractStatus.toCanonical;
 
 import com.google.api.gax.rpc.ApiException;
@@ -72,6 +73,7 @@ public abstract class ProducerSettings {
                                         PublisherServiceSettings.newBuilder()))))
                         .setTopic(topicPath())
                         .setPartition(partition)
+                        .setBatchingSettings(DEFAULT_BATCHING_SETTINGS)
                         .build();
                   } catch (Throwable t) {
                     throw toCanonical(t).underlying;
