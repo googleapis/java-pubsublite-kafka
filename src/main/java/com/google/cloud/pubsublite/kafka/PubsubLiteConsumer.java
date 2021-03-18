@@ -18,6 +18,7 @@ package com.google.cloud.pubsublite.kafka;
 
 import static com.google.cloud.pubsublite.kafka.KafkaExceptionUtils.toKafka;
 
+import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
 import com.google.api.gax.rpc.ApiException;
@@ -26,6 +27,7 @@ import com.google.cloud.pubsublite.Partition;
 import com.google.cloud.pubsublite.SubscriptionPath;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.internal.CursorClient;
+import com.google.cloud.pubsublite.internal.TopicStatsClient;
 import com.google.cloud.pubsublite.internal.wire.Assigner;
 import com.google.cloud.pubsublite.internal.wire.AssignerFactory;
 import com.google.cloud.pubsublite.internal.wire.PartitionAssignmentReceiver;
@@ -74,6 +76,7 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
   private final ConsumerFactory consumerFactory;
   private final AssignerFactory assignerFactory;
   private final CursorClient cursorClient;
+  private final TopicStatsClient topicStatsClient;
   private Optional<Assigner> assigner = Optional.empty();
   private Optional<SingleSubscriptionConsumer> consumer = Optional.empty();
 
@@ -83,13 +86,15 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
       SharedBehavior shared,
       ConsumerFactory consumerFactory,
       AssignerFactory assignerFactory,
-      CursorClient cursorClient) {
+      CursorClient cursorClient,
+      TopicStatsClient topicStatsClient) {
     this.subscriptionPath = subscriptionPath;
     this.topicPath = topicPath;
     this.shared = shared;
     this.consumerFactory = consumerFactory;
     this.assignerFactory = assignerFactory;
     this.cursorClient = cursorClient;
+    this.topicStatsClient = topicStatsClient;
   }
 
   private TopicPartition toTopicPartition(Partition partition) {
@@ -490,8 +495,25 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
   @Override
   public Map<TopicPartition, Long> endOffsets(
       Collection<TopicPartition> collection, Duration duration) {
-    throw new UnsupportedVersionException(
-        "Pub/Sub Lite does not support Consumer backlog introspection.");
+    try {
+      Map<TopicPartition, ApiFuture<Cursor>> cursors =
+          collection.stream()
+              .collect(
+                  Collectors.toMap(
+                      topicPartition -> topicPartition,
+                      topicPartition ->
+                          topicStatsClient.computeHeadCursor(
+                              topicPath, checkTopicGetPartition(topicPartition))));
+      ApiFutures.allAsList(cursors.values()).get(duration.toMillis(), TimeUnit.MILLISECONDS);
+
+      ImmutableMap.Builder<TopicPartition, Long> output = ImmutableMap.builder();
+      for (Map.Entry<TopicPartition, ApiFuture<Cursor>> entry : cursors.entrySet()) {
+        output.put(entry.getKey(), entry.getValue().get().getOffset());
+      }
+      return output.build();
+    } catch (Throwable t) {
+      throw toKafka(t);
+    }
   }
 
   @Override
@@ -510,6 +532,12 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
       cursorClient.close();
     } catch (Exception e) {
       logger.atSevere().withCause(e).log("Error closing cursor client during Consumer shutdown.");
+    }
+    try {
+      topicStatsClient.close();
+    } catch (Exception e) {
+      logger.atSevere().withCause(e).log(
+          "Error closing topic stats client during Consumer shutdown.");
     }
     try {
       shared.close();
