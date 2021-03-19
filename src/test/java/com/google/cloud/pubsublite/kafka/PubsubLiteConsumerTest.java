@@ -39,6 +39,7 @@ import com.google.cloud.pubsublite.SubscriptionPath;
 import com.google.cloud.pubsublite.TopicName;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.internal.CursorClient;
+import com.google.cloud.pubsublite.internal.TopicStatsClient;
 import com.google.cloud.pubsublite.internal.testing.UnitTestExamples;
 import com.google.cloud.pubsublite.internal.wire.Assigner;
 import com.google.cloud.pubsublite.internal.wire.AssignerFactory;
@@ -54,6 +55,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.reflect.ImmutableTypeToInstanceMap;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -102,6 +104,7 @@ public class PubsubLiteConsumerTest {
   @Mock AssignerFactory assignerFactory;
   @Mock CursorClient cursorClient;
   @Mock AdminClient adminClient;
+  @Mock TopicStatsClient topicStatsClient;
 
   @Mock Assigner assigner;
   @Mock SingleSubscriptionConsumer underlying;
@@ -118,7 +121,8 @@ public class PubsubLiteConsumerTest {
             new SharedBehavior(adminClient),
             consumerFactory,
             assignerFactory,
-            cursorClient);
+            cursorClient,
+            topicStatsClient);
     when(consumerFactory.newConsumer()).thenReturn(underlying);
   }
 
@@ -140,10 +144,6 @@ public class PubsubLiteConsumerTest {
     assertThrows(
         UnsupportedVersionException.class,
         () -> consumer.offsetsForTimes(ImmutableMap.of(), Duration.ZERO));
-    assertThrows(UnsupportedVersionException.class, () -> consumer.endOffsets(ImmutableList.of()));
-    assertThrows(
-        UnsupportedVersionException.class,
-        () -> consumer.endOffsets(ImmutableList.of(), Duration.ZERO));
   }
 
   @Test
@@ -469,9 +469,23 @@ public class PubsubLiteConsumerTest {
   }
 
   @Test
+  public void endOffsets() {
+    TopicPartition partition2 = new TopicPartition(example(TopicPath.class).toString(), 2);
+    TopicPartition partition4 = new TopicPartition(example(TopicPath.class).toString(), 4);
+    when(topicStatsClient.computeHeadCursor(example(TopicPath.class), Partition.of(2)))
+        .thenReturn(ApiFutures.immediateFuture(Cursor.newBuilder().setOffset(22).build()));
+    when(topicStatsClient.computeHeadCursor(example(TopicPath.class), Partition.of(4)))
+        .thenReturn(ApiFutures.immediateFuture(Cursor.newBuilder().setOffset(44).build()));
+    Map<TopicPartition, Long> output =
+        consumer.endOffsets(ImmutableList.of(partition2, partition4));
+    assertThat(output).isEqualTo(ImmutableMap.of(partition2, 22L, partition4, 44L));
+  }
+
+  @Test
   public void close() {
     consumer.close();
     verify(adminClient).close();
     verify(cursorClient).close();
+    verify(topicStatsClient).close();
   }
 }

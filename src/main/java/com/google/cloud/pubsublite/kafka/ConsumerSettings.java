@@ -29,6 +29,8 @@ import com.google.cloud.pubsublite.cloudpubsub.FlowControlSettings;
 import com.google.cloud.pubsublite.internal.BufferingPullSubscriber;
 import com.google.cloud.pubsublite.internal.CursorClient;
 import com.google.cloud.pubsublite.internal.CursorClientSettings;
+import com.google.cloud.pubsublite.internal.TopicStatsClient;
+import com.google.cloud.pubsublite.internal.TopicStatsClientSettings;
 import com.google.cloud.pubsublite.internal.wire.AssignerFactory;
 import com.google.cloud.pubsublite.internal.wire.AssignerSettings;
 import com.google.cloud.pubsublite.internal.wire.CommitterSettings;
@@ -148,12 +150,21 @@ public abstract class ConsumerSettings {
 
       CursorClient cursorClient =
           CursorClient.create(CursorClientSettings.newBuilder().setRegion(zone.region()).build());
+      TopicStatsClient topicStatsClient =
+          TopicStatsClient.create(
+              TopicStatsClientSettings.newBuilder().setRegion(zone.region()).build());
       SharedBehavior shared =
           new SharedBehavior(
               AdminClient.create(
                   AdminClientSettings.newBuilder().setRegion(topic.location().region()).build()));
       return new PubsubLiteConsumer(
-          subscriptionPath(), topic, shared, consumerFactory, assignerFactory, cursorClient);
+          subscriptionPath(),
+          topic,
+          shared,
+          consumerFactory,
+          assignerFactory,
+          cursorClient,
+          topicStatsClient);
     } catch (Exception e) {
       throw toCanonical(e).underlying;
     }
