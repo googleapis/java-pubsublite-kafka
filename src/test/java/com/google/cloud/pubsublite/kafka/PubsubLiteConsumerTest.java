@@ -53,9 +53,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import com.google.common.reflect.ImmutableTypeToInstanceMap;
+import com.google.protobuf.util.Timestamps;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -63,12 +65,12 @@ import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.TimeoutException;
-import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -139,11 +141,6 @@ public class PubsubLiteConsumerTest {
         UnsupportedOperationException.class,
         () ->
             consumer.subscribe(ImmutableList.of("a", "b"), mock(ConsumerRebalanceListener.class)));
-    assertThrows(
-        UnsupportedVersionException.class, () -> consumer.offsetsForTimes(ImmutableMap.of()));
-    assertThrows(
-        UnsupportedVersionException.class,
-        () -> consumer.offsetsForTimes(ImmutableMap.of(), Duration.ZERO));
   }
 
   @Test
@@ -479,6 +476,22 @@ public class PubsubLiteConsumerTest {
     Map<TopicPartition, Long> output =
         consumer.endOffsets(ImmutableList.of(partition2, partition4));
     assertThat(output).isEqualTo(ImmutableMap.of(partition2, 22L, partition4, 44L));
+  }
+
+  @Test
+  public void offsetsForTimes() {
+    TopicPartition partition2 = new TopicPartition(example(TopicPath.class).toString(), 2);
+    TopicPartition partition4 = new TopicPartition(example(TopicPath.class).toString(), 4);
+    when(topicStatsClient.computeCursorForEventTime(
+            example(TopicPath.class), Partition.of(2), Timestamps.fromMillis(2000)))
+        .thenReturn(
+            ApiFutures.immediateFuture(Optional.of(Cursor.newBuilder().setOffset(22).build())));
+    when(topicStatsClient.computeCursorForEventTime(
+            example(TopicPath.class), Partition.of(4), Timestamps.fromMillis(4000)))
+        .thenReturn(ApiFutures.immediateFuture(Optional.empty()));
+    Map<TopicPartition, OffsetAndTimestamp> output =
+        consumer.offsetsForTimes(ImmutableMap.of(partition2, 2000L, partition4, 4000L));
+    assertThat(output).isEqualTo(ImmutableMap.of(partition2, new OffsetAndTimestamp(22, 2000)));
   }
 
   @Test
