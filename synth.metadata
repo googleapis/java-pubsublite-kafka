@@ -4,14 +4,14 @@
       "git": {
         "name": ".",
         "remote": "https://github.com/googleapis/java-pubsublite-kafka.git",
-        "sha": "00fcf87c40c9bebf6ad807a5ab356a77d2ed7a91"
+        "sha": "5135c6bf05e136729c092cb6183534b802ac6e93"
       }
     },
     {
       "git": {
         "name": "synthtool",
         "remote": "https://github.com/googleapis/synthtool.git",
-        "sha": "046994f491c02806aea60118e214a9edd67f5ab7"
+        "sha": "4f4b1b9b8d8b52f1e9e4a76165896debce5ab7f1"
       }
     }
   ],
