@@ -55,6 +55,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.reflect.ImmutableTypeToInstanceMap;
 import com.google.protobuf.util.Timestamps;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -491,7 +492,11 @@ public class PubsubLiteConsumerTest {
         .thenReturn(ApiFutures.immediateFuture(Optional.empty()));
     Map<TopicPartition, OffsetAndTimestamp> output =
         consumer.offsetsForTimes(ImmutableMap.of(partition2, 2000L, partition4, 4000L));
-    assertThat(output).isEqualTo(ImmutableMap.of(partition2, new OffsetAndTimestamp(22, 2000)));
+
+    Map<TopicPartition, OffsetAndTimestamp> expected = new HashMap<>();
+    expected.put(partition2, new OffsetAndTimestamp(22, 2000));
+    expected.put(partition4, null);
+    assertThat(output).isEqualTo(expected);
   }
 
   @Test

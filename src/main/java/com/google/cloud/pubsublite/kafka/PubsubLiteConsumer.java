@@ -41,6 +41,7 @@ import com.google.common.flogger.GoogleLogger;
 import com.google.protobuf.util.Timestamps;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -480,17 +481,20 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
                               Timestamps.fromMillis(entry.getValue()))));
       ApiFutures.allAsList(cursors.values()).get(duration.toMillis(), TimeUnit.MILLISECONDS);
 
-      // As per KafkaConsumer.offsetsForTimes, null (represented by no map entry) is returned if
-      // there is no result for the partition.
-      ImmutableMap.Builder<TopicPartition, OffsetAndTimestamp> output = ImmutableMap.builder();
+      Map<TopicPartition, OffsetAndTimestamp> output = new HashMap<>();
       for (Map.Entry<TopicPartition, ApiFuture<Optional<Cursor>>> entry : cursors.entrySet()) {
+        // As per KafkaConsumer.offsetsForTimes, null is returned if there is no result for the
+        // partition.
+        OffsetAndTimestamp offsetAndTime = null;
         Optional<Cursor> cursor = entry.getValue().get();
         if (cursor.isPresent()) {
-          Long timestamp = Preconditions.checkNotNull(map.get(entry.getKey()));
-          output.put(entry.getKey(), new OffsetAndTimestamp(cursor.get().getOffset(), timestamp));
+          offsetAndTime =
+              new OffsetAndTimestamp(
+                  cursor.get().getOffset(), Preconditions.checkNotNull(map.get(entry.getKey())));
         }
+        output.put(entry.getKey(), offsetAndTime);
       }
-      return output.build();
+      return output;
     } catch (Throwable t) {
       throw toKafka(t);
     }
