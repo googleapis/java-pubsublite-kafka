@@ -30,6 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.api.core.ApiFutures;
 import com.google.api.core.SettableApiFuture;
+import com.google.api.gax.rpc.StatusCode.Code;
 import com.google.cloud.pubsublite.AdminClient;
 import com.google.cloud.pubsublite.CloudZone;
 import com.google.cloud.pubsublite.Offset;
@@ -38,6 +39,7 @@ import com.google.cloud.pubsublite.ProjectNumber;
 import com.google.cloud.pubsublite.SubscriptionPath;
 import com.google.cloud.pubsublite.TopicName;
 import com.google.cloud.pubsublite.TopicPath;
+import com.google.cloud.pubsublite.internal.CheckedApiException;
 import com.google.cloud.pubsublite.internal.CursorClient;
 import com.google.cloud.pubsublite.internal.TopicStatsClient;
 import com.google.cloud.pubsublite.internal.testing.UnitTestExamples;
@@ -71,6 +73,7 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.BrokerNotAvailableException;
 import org.apache.kafka.common.errors.TimeoutException;
 import org.junit.Before;
 import org.junit.Test;
@@ -497,6 +500,24 @@ public class PubsubLiteConsumerTest {
     expected.put(partition2, new OffsetAndTimestamp(22, 2000));
     expected.put(partition4, null);
     assertThat(output).isEqualTo(expected);
+  }
+
+  @Test
+  public void offsetsForTimesFailure() {
+    TopicPartition partition2 = new TopicPartition(example(TopicPath.class).toString(), 2);
+    TopicPartition partition4 = new TopicPartition(example(TopicPath.class).toString(), 4);
+    when(topicStatsClient.computeCursorForEventTime(
+            example(TopicPath.class), Partition.of(2), Timestamps.fromMillis(2000)))
+        .thenReturn(
+            ApiFutures.immediateFuture(Optional.of(Cursor.newBuilder().setOffset(22).build())));
+    when(topicStatsClient.computeCursorForEventTime(
+            example(TopicPath.class), Partition.of(4), Timestamps.fromMillis(4000)))
+        .thenReturn(
+            ApiFutures.immediateFailedFuture(new CheckedApiException(Code.UNAVAILABLE).underlying));
+
+    assertThrows(
+        BrokerNotAvailableException.class,
+        () -> consumer.offsetsForTimes(ImmutableMap.of(partition2, 2000L, partition4, 4000L)));
   }
 
   @Test
