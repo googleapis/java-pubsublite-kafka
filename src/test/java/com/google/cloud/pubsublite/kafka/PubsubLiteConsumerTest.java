@@ -30,6 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.api.core.ApiFutures;
 import com.google.api.core.SettableApiFuture;
+import com.google.api.gax.rpc.StatusCode.Code;
 import com.google.cloud.pubsublite.AdminClient;
 import com.google.cloud.pubsublite.CloudZone;
 import com.google.cloud.pubsublite.Offset;
@@ -38,6 +39,7 @@ import com.google.cloud.pubsublite.ProjectNumber;
 import com.google.cloud.pubsublite.SubscriptionPath;
 import com.google.cloud.pubsublite.TopicName;
 import com.google.cloud.pubsublite.TopicPath;
+import com.google.cloud.pubsublite.internal.CheckedApiException;
 import com.google.cloud.pubsublite.internal.CursorClient;
 import com.google.cloud.pubsublite.internal.TopicStatsClient;
 import com.google.cloud.pubsublite.internal.testing.UnitTestExamples;
@@ -53,9 +55,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import com.google.common.reflect.ImmutableTypeToInstanceMap;
+import com.google.protobuf.util.Timestamps;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -63,12 +68,13 @@ import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.BrokerNotAvailableException;
 import org.apache.kafka.common.errors.TimeoutException;
-import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -139,11 +145,6 @@ public class PubsubLiteConsumerTest {
         UnsupportedOperationException.class,
         () ->
             consumer.subscribe(ImmutableList.of("a", "b"), mock(ConsumerRebalanceListener.class)));
-    assertThrows(
-        UnsupportedVersionException.class, () -> consumer.offsetsForTimes(ImmutableMap.of()));
-    assertThrows(
-        UnsupportedVersionException.class,
-        () -> consumer.offsetsForTimes(ImmutableMap.of(), Duration.ZERO));
   }
 
   @Test
@@ -479,6 +480,44 @@ public class PubsubLiteConsumerTest {
     Map<TopicPartition, Long> output =
         consumer.endOffsets(ImmutableList.of(partition2, partition4));
     assertThat(output).isEqualTo(ImmutableMap.of(partition2, 22L, partition4, 44L));
+  }
+
+  @Test
+  public void offsetsForTimes() {
+    TopicPartition partition2 = new TopicPartition(example(TopicPath.class).toString(), 2);
+    TopicPartition partition4 = new TopicPartition(example(TopicPath.class).toString(), 4);
+    when(topicStatsClient.computeCursorForEventTime(
+            example(TopicPath.class), Partition.of(2), Timestamps.fromMillis(2000)))
+        .thenReturn(
+            ApiFutures.immediateFuture(Optional.of(Cursor.newBuilder().setOffset(22).build())));
+    when(topicStatsClient.computeCursorForEventTime(
+            example(TopicPath.class), Partition.of(4), Timestamps.fromMillis(4000)))
+        .thenReturn(ApiFutures.immediateFuture(Optional.empty()));
+    Map<TopicPartition, OffsetAndTimestamp> output =
+        consumer.offsetsForTimes(ImmutableMap.of(partition2, 2000L, partition4, 4000L));
+
+    Map<TopicPartition, OffsetAndTimestamp> expected = new HashMap<>();
+    expected.put(partition2, new OffsetAndTimestamp(22, 2000));
+    expected.put(partition4, null);
+    assertThat(output).isEqualTo(expected);
+  }
+
+  @Test
+  public void offsetsForTimesFailure() {
+    TopicPartition partition2 = new TopicPartition(example(TopicPath.class).toString(), 2);
+    TopicPartition partition4 = new TopicPartition(example(TopicPath.class).toString(), 4);
+    when(topicStatsClient.computeCursorForEventTime(
+            example(TopicPath.class), Partition.of(2), Timestamps.fromMillis(2000)))
+        .thenReturn(
+            ApiFutures.immediateFuture(Optional.of(Cursor.newBuilder().setOffset(22).build())));
+    when(topicStatsClient.computeCursorForEventTime(
+            example(TopicPath.class), Partition.of(4), Timestamps.fromMillis(4000)))
+        .thenReturn(
+            ApiFutures.immediateFailedFuture(new CheckedApiException(Code.UNAVAILABLE).underlying));
+
+    assertThrows(
+        BrokerNotAvailableException.class,
+        () -> consumer.offsetsForTimes(ImmutableMap.of(partition2, 2000L, partition4, 4000L)));
   }
 
   @Test

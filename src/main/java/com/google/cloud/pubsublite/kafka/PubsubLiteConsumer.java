@@ -34,11 +34,14 @@ import com.google.cloud.pubsublite.internal.wire.PartitionAssignmentReceiver;
 import com.google.cloud.pubsublite.proto.Cursor;
 import com.google.cloud.pubsublite.proto.SeekRequest;
 import com.google.cloud.pubsublite.proto.SeekRequest.NamedTarget;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.GoogleLogger;
+import com.google.protobuf.util.Timestamps;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +62,6 @@ import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.errors.UnsupportedVersionException;
 
 /**
  * A class that uses a SingleSubscriptionConsumer to remove the duplicate methods from the kafka
@@ -466,8 +468,36 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
   @Override
   public Map<TopicPartition, OffsetAndTimestamp> offsetsForTimes(
       Map<TopicPartition, Long> map, Duration duration) {
-    throw new UnsupportedVersionException(
-        "Pub/Sub Lite does not support Consumer backlog introspection.");
+    try {
+      Map<TopicPartition, ApiFuture<Optional<Cursor>>> cursors =
+          map.entrySet().stream()
+              .collect(
+                  Collectors.toMap(
+                      entry -> entry.getKey(),
+                      entry ->
+                          topicStatsClient.computeCursorForEventTime(
+                              topicPath,
+                              checkTopicGetPartition(entry.getKey()),
+                              Timestamps.fromMillis(entry.getValue()))));
+      ApiFutures.allAsList(cursors.values()).get(duration.toMillis(), TimeUnit.MILLISECONDS);
+
+      Map<TopicPartition, OffsetAndTimestamp> output = new HashMap<>();
+      for (Map.Entry<TopicPartition, ApiFuture<Optional<Cursor>>> entry : cursors.entrySet()) {
+        // As per KafkaConsumer.offsetsForTimes, null is returned if there is no result for the
+        // partition.
+        OffsetAndTimestamp offsetAndTime = null;
+        Optional<Cursor> cursor = entry.getValue().get();
+        if (cursor.isPresent()) {
+          offsetAndTime =
+              new OffsetAndTimestamp(
+                  cursor.get().getOffset(), Preconditions.checkNotNull(map.get(entry.getKey())));
+        }
+        output.put(entry.getKey(), offsetAndTime);
+      }
+      return output;
+    } catch (Throwable t) {
+      throw toKafka(t);
+    }
   }
 
   @Override
