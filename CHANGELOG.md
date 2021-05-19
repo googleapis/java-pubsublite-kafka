@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.0](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.2.3...v0.3.0) (2021-05-19)
+
+
+### Features
+
+* Implement Consumer.endOffsets ([#102](https://www.github.com/googleapis/java-pubsublite-kafka/issues/102)) ([58e2e60](https://www.github.com/googleapis/java-pubsublite-kafka/commit/58e2e609ed9d9c73ed817e7ddf2c5be930e66339))
+* Implement Consumer.offsetsForTimes ([#123](https://www.github.com/googleapis/java-pubsublite-kafka/issues/123)) ([a785e53](https://www.github.com/googleapis/java-pubsublite-kafka/commit/a785e53d03f73fa4e0af410ccc8388e0ff109155))
+
+
+### Bug Fixes
+
+* release scripts from issuing overlapping phases ([#115](https://www.github.com/googleapis/java-pubsublite-kafka/issues/115)) ([7f92099](https://www.github.com/googleapis/java-pubsublite-kafka/commit/7f9209936a45b6250aeaeeef6e57194c01be9898))
+* typo ([#114](https://www.github.com/googleapis/java-pubsublite-kafka/issues/114)) ([f9bbaff](https://www.github.com/googleapis/java-pubsublite-kafka/commit/f9bbaffe3341455fd9e73b99ff944a370434f329))
+
+
+### Dependencies
+
+* update dependency org.apache.kafka:kafka-clients to v2.8.0 ([#116](https://www.github.com/googleapis/java-pubsublite-kafka/issues/116)) ([7115868](https://www.github.com/googleapis/java-pubsublite-kafka/commit/7115868f06d16bc0d2b64c9bd44137a0f0fcb8ee))
+* update to google-cloud-pubsublite v0.14.1 ([#121](https://www.github.com/googleapis/java-pubsublite-kafka/issues/121)) ([5135c6b](https://www.github.com/googleapis/java-pubsublite-kafka/commit/5135c6bf05e136729c092cb6183534b802ac6e93))
+* update to google-cloud-pubsublite v0.14.2 ([#129](https://www.github.com/googleapis/java-pubsublite-kafka/issues/129)) ([3ff2cdf](https://www.github.com/googleapis/java-pubsublite-kafka/commit/3ff2cdfc296ff4ba2f9a37c845d9da112689bda5))
+
 ### [0.2.3](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.2.2...v0.2.3) (2021-03-03)
 
 
