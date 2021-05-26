@@ -63,9 +63,6 @@ be implemented using Pub/Sub Lite as a backend. The key differences are:
 - Producers operate on a single topic, and Consumers on a single subscription.
 - ProducerRecord may not specify partition explicitly.
 - Consumers may not dynamically create consumer groups (subscriptions).
-- `Consumer.offsetsForTimes` and `Consumer.endOffsets` will raise an
-  exception.
-
 
 
 #### Publishing messages
