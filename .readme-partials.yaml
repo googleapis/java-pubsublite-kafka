@@ -80,5 +80,3 @@ about: |
   - Producers operate on a single topic, and Consumers on a single subscription.
   - ProducerRecord may not specify partition explicitly.
   - Consumers may not dynamically create consumer groups (subscriptions).
-  - `Consumer.offsetsForTimes` and `Consumer.endOffsets` will raise an
-    exception.
