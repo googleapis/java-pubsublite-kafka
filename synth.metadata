@@ -4,7 +4,7 @@
       "git": {
         "name": ".",
         "remote": "https://github.com/googleapis/java-pubsublite-kafka.git",
-        "sha": "395262f087f2d00a6b5f7eae77373bf6e23ff960"
+        "sha": "07799ea8dac910de38936ecf05e99e435b13c6ac"
       }
     },
     {
