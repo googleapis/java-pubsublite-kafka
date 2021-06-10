@@ -118,13 +118,14 @@ public abstract class ConsumerSettings {
                                         PubsubContext.of(FRAMEWORK),
                                         RoutingMetadata.of(subscriptionPath(), partition),
                                         SubscriberServiceSettings.newBuilder()))))
+                        .setInitialLocation(initialSeek)
                         .build();
                   } catch (Throwable t) {
                     throw toCanonical(t).underlying;
                   }
                 };
             return new BufferingPullSubscriber(
-                subscriberFactory, perPartitionFlowControlSettings(), initialSeek);
+                subscriberFactory, perPartitionFlowControlSettings());
           };
       CommitterFactory committerFactory =
           partition -> {
