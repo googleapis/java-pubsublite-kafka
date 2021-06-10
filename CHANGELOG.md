@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.0](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.3.0...v0.4.0) (2021-06-10)
+
+
+### Features
+
+* add `gcf-owl-bot[bot]` to `ignoreAuthors` ([#131](https://www.github.com/googleapis/java-pubsublite-kafka/issues/131)) ([395262f](https://www.github.com/googleapis/java-pubsublite-kafka/commit/395262f087f2d00a6b5f7eae77373bf6e23ff960))
+
+
+### Documentation
+
+* update README ([#137](https://www.github.com/googleapis/java-pubsublite-kafka/issues/137)) ([6d05145](https://www.github.com/googleapis/java-pubsublite-kafka/commit/6d051459d82db368892be72102ec5ae2d6738493))
+* update README ([#139](https://www.github.com/googleapis/java-pubsublite-kafka/issues/139)) ([31b7ab9](https://www.github.com/googleapis/java-pubsublite-kafka/commit/31b7ab9ccbe8407a06a1a91e748e1e45b2dbd229))
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v0.15.0 ([#146](https://www.github.com/googleapis/java-pubsublite-kafka/issues/146)) ([7a3932e](https://www.github.com/googleapis/java-pubsublite-kafka/commit/7a3932e1abb768b13999782c00617b20141bddbf))
+* update google-cloud-pubsublite to v0.15.0 ([#147](https://www.github.com/googleapis/java-pubsublite-kafka/issues/147)) ([c0e7736](https://www.github.com/googleapis/java-pubsublite-kafka/commit/c0e773681d2b60bebd51e005a51dc779f95ddfe0))
+
 ## [0.3.0](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.2.3...v0.3.0) (2021-05-19)
 
 
