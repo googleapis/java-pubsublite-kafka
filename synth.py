@@ -17,7 +17,3 @@
 import synthtool.languages.java as java
 
 java.common_templates()
-
-java.common_templates(excludes=[
-  '.github/CODEOWNERS',
-])
