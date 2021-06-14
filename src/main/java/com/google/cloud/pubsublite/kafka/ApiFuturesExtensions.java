@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,19 @@
 
 package com.google.cloud.pubsublite.kafka;
 
-import com.google.cloud.pubsublite.Partition;
-import com.google.cloud.pubsublite.internal.BlockingPullSubscriber;
-import com.google.cloud.pubsublite.internal.CheckedApiException;
-import com.google.cloud.pubsublite.proto.SeekRequest;
+import com.google.api.core.ApiFuture;
+import com.google.api.core.SettableApiFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import java.util.Collection;
 
-/** A factory for making new PullSubscribers for a given partition of a subscription. */
-interface PullSubscriberFactory {
-  BlockingPullSubscriber newPullSubscriber(Partition partition, SeekRequest initial)
-      throws CheckedApiException;
+final class ApiFuturesExtensions {
+  private ApiFuturesExtensions() {}
+
+  public static <T> ApiFuture<Void> whenFirstDone(Collection<ApiFuture<T>> futures) {
+    SettableApiFuture<Void> someFutureDone = SettableApiFuture.create();
+    futures.forEach(
+        future ->
+            future.addListener(() -> someFutureDone.set(null), MoreExecutors.directExecutor()));
+    return someFutureDone;
+  }
 }

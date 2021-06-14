@@ -17,17 +17,20 @@
 package com.google.cloud.pubsublite.kafka;
 
 import static com.google.cloud.pubsublite.kafka.KafkaExceptionUtils.toKafka;
+import static com.google.common.base.Preconditions.checkState;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
+import com.google.api.core.SettableApiFuture;
 import com.google.cloud.pubsublite.Offset;
 import com.google.cloud.pubsublite.Partition;
 import com.google.cloud.pubsublite.SequencedMessage;
 import com.google.cloud.pubsublite.TopicPath;
+import com.google.cloud.pubsublite.internal.BlockingPullSubscriber;
 import com.google.cloud.pubsublite.internal.CloseableMonitor;
 import com.google.cloud.pubsublite.internal.ExtractStatus;
-import com.google.cloud.pubsublite.internal.PullSubscriber;
 import com.google.cloud.pubsublite.internal.wire.Committer;
 import com.google.cloud.pubsublite.proto.SeekRequest;
 import com.google.cloud.pubsublite.proto.SeekRequest.NamedTarget;
@@ -40,13 +43,13 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import java.time.Duration;
 import java.util.ArrayDeque;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.consumer.CommitFailedException;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -67,17 +70,21 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
   private final CloseableMonitor monitor = new CloseableMonitor();
 
   static class SubscriberState {
-    PullSubscriber<SequencedMessage> subscriber;
+    BlockingPullSubscriber subscriber;
     Committer committer;
-    Optional<Offset> lastUncommitted = Optional.empty();
+    boolean needsCommitting = false;
+    Optional<Offset> lastReceived = Optional.empty();
   }
 
   @GuardedBy("monitor.monitor")
-  private Map<Partition, SubscriberState> partitions = new HashMap<>();
-
-  // Set to true when wakeup() has been called once.
+  private final Map<Partition, SubscriberState> partitions = new HashMap<>();
+  // When the set of assignments changes, this future will be set and swapped with a new future to
+  // let ongoing pollers know that they should pick up new assignments.
   @GuardedBy("monitor.monitor")
-  private boolean wakeupTriggered = false;
+  private SettableApiFuture<Void> assignmentChanged = SettableApiFuture.create();
+
+  // Set when wakeup() has been called once.
+  private final SettableApiFuture<Void> wakeupTriggered = SettableApiFuture.create();
 
   SingleSubscriptionConsumerImpl(
       TopicPath topic,
@@ -118,6 +125,8 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
                     s.committer.startAsync().awaitRunning();
                     partitions.put(partition, s);
                   }));
+      assignmentChanged.set(null);
+      assignmentChanged = SettableApiFuture.create();
     } catch (Throwable t) {
       throw ExtractStatus.toCanonical(t).underlying;
     }
@@ -136,27 +145,33 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
     partitions.forEach(
         ExtractStatus.rethrowAsRuntime(
             (partition, state) -> {
-              List<SequencedMessage> messages = state.subscriber.pull();
-              if (messages.isEmpty()) return;
-              partitionQueues.computeIfAbsent(partition, x -> new ArrayDeque<>()).addAll(messages);
+              ArrayDeque<SequencedMessage> messages = new ArrayDeque<>();
+              for (Optional<SequencedMessage> message = state.subscriber.messageIfAvailable();
+                  message.isPresent();
+                  message = state.subscriber.messageIfAvailable()) {
+                messages.add(message.get());
+              }
+              partitionQueues.put(partition, messages);
             }));
     return partitionQueues;
   }
 
   private Map<Partition, Queue<SequencedMessage>> doPoll(Duration duration) {
     try {
-      while (!duration.isZero()) {
-        try (CloseableMonitor.Hold h = monitor.enter()) {
-          if (wakeupTriggered) throw new WakeupException();
-          Map<Partition, Queue<SequencedMessage>> partitionQueues = fetchAll();
-          if (!partitionQueues.isEmpty()) return partitionQueues;
-        }
-        Duration sleepFor = Collections.min(ImmutableList.of(duration, Duration.ofMillis(10)));
-        Thread.sleep(sleepFor.toMillis());
-        duration = duration.minus(sleepFor);
-      }
-      // Last fetch to handle duration originally being 0 and last time window sleep.
+      ImmutableList.Builder<ApiFuture<Void>> stopSleepingSignals = ImmutableList.builder();
       try (CloseableMonitor.Hold h = monitor.enter()) {
+        stopSleepingSignals.add(wakeupTriggered);
+        stopSleepingSignals.add(assignmentChanged);
+        partitions.values().forEach(state -> stopSleepingSignals.add(state.subscriber.onData()));
+      }
+      try {
+        ApiFuturesExtensions.whenFirstDone(stopSleepingSignals.build())
+            .get(duration.toMillis(), MILLISECONDS);
+      } catch (TimeoutException e) {
+        return ImmutableMap.of();
+      }
+      try (CloseableMonitor.Hold h = monitor.enter()) {
+        if (wakeupTriggered.isDone()) throw new WakeupException();
         return fetchAll();
       }
     } catch (Throwable t) {
@@ -166,8 +181,6 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
 
   @Override
   public ConsumerRecords<byte[], byte[]> poll(Duration duration) {
-    Map<Partition, Queue<SequencedMessage>> partitionQueues = doPoll(duration);
-    Map<TopicPartition, List<ConsumerRecord<byte[], byte[]>>> records = new HashMap<>();
     if (autocommit) {
       ApiFuture<?> future = commitAll();
       ApiFutures.addCallback(
@@ -183,14 +196,16 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
           },
           MoreExecutors.directExecutor());
     }
+    Map<Partition, Queue<SequencedMessage>> partitionQueues = doPoll(duration);
+    Map<TopicPartition, List<ConsumerRecord<byte[], byte[]>>> records = new HashMap<>();
     partitionQueues.forEach(
         (partition, queue) -> {
           if (queue.isEmpty()) return;
           try (CloseableMonitor.Hold h = monitor.enter()) {
             SubscriberState state = partitions.getOrDefault(partition, null);
-            if (state != null) {
-              state.lastUncommitted = Optional.of(Iterables.getLast(queue).offset());
-            }
+            if (state == null) return;
+            state.lastReceived = Optional.of(Iterables.getLast(queue).offset());
+            state.needsCommitting = true;
           }
           List<ConsumerRecord<byte[], byte[]>> partitionRecords =
               queue.stream()
@@ -207,17 +222,16 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
     try (CloseableMonitor.Hold h = monitor.enter()) {
       ImmutableMap.Builder<Partition, Offset> builder = ImmutableMap.builder();
       ImmutableList.Builder<ApiFuture<?>> commitFutures = ImmutableList.builder();
-      partitions.entrySet().stream()
-          .filter(entry -> entry.getValue().lastUncommitted.isPresent())
-          .forEach(
-              entry -> {
-                // The Pub/Sub Lite commit offset is the next to be received.
-                Offset lastUncommitted = entry.getValue().lastUncommitted.get();
-                entry.getValue().lastUncommitted = Optional.empty();
-                Offset toCommit = Offset.of(lastUncommitted.value() + 1);
-                builder.put(entry.getKey(), toCommit);
-                commitFutures.add(entry.getValue().committer.commitOffset(toCommit));
-              });
+      partitions.forEach(
+          (partition, state) -> {
+            if (!state.needsCommitting) return;
+            checkState(state.lastReceived.isPresent());
+            state.needsCommitting = false;
+            // The Pub/Sub Lite commit offset is one more than the last received.
+            Offset toCommit = Offset.of(state.lastReceived.get().value() + 1);
+            builder.put(partition, toCommit);
+            commitFutures.add(state.committer.commitOffset(toCommit));
+          });
       Map<Partition, Offset> map = builder.build();
       return ApiFutures.transform(
           ApiFutures.allAsList(commitFutures.build()),
@@ -269,7 +283,7 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
   @Override
   public Optional<Long> position(Partition partition) {
     if (!partitions.containsKey(partition)) return Optional.empty();
-    return partitions.get(partition).subscriber.nextOffset().map(Offset::value);
+    return partitions.get(partition).lastReceived.map(lastReceived -> lastReceived.value() + 1);
   }
 
   @Override
@@ -286,8 +300,6 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
 
   @Override
   public void wakeup() {
-    try (CloseableMonitor.Hold h = monitor.enter()) {
-      wakeupTriggered = true;
-    }
+    wakeupTriggered.set(null);
   }
 }

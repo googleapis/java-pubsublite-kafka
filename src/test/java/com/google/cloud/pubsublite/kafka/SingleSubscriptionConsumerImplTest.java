@@ -29,16 +29,18 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.api.core.ApiFuture;
+import com.google.api.core.ApiFutures;
 import com.google.api.core.SettableApiFuture;
 import com.google.cloud.pubsublite.Message;
 import com.google.cloud.pubsublite.Offset;
 import com.google.cloud.pubsublite.Partition;
 import com.google.cloud.pubsublite.SequencedMessage;
 import com.google.cloud.pubsublite.TopicPath;
+import com.google.cloud.pubsublite.internal.BlockingPullSubscriber;
 import com.google.cloud.pubsublite.internal.CheckedApiException;
-import com.google.cloud.pubsublite.internal.PullSubscriber;
 import com.google.cloud.pubsublite.internal.testing.FakeApiService;
 import com.google.cloud.pubsublite.internal.wire.Committer;
+import com.google.cloud.pubsublite.internal.wire.SystemExecutors;
 import com.google.cloud.pubsublite.proto.Cursor;
 import com.google.cloud.pubsublite.proto.SeekRequest;
 import com.google.cloud.pubsublite.proto.SeekRequest.NamedTarget;
@@ -74,8 +76,8 @@ public class SingleSubscriptionConsumerImplTest {
   @Mock PullSubscriberFactory subscriberFactory;
   @Mock CommitterFactory committerFactory;
 
-  @Mock PullSubscriber<SequencedMessage> subscriber5;
-  @Mock PullSubscriber<SequencedMessage> subscriber8;
+  @Mock BlockingPullSubscriber subscriber5;
+  @Mock BlockingPullSubscriber subscriber8;
 
   abstract static class FakeCommitter extends FakeApiService implements Committer {}
 
@@ -97,9 +99,13 @@ public class SingleSubscriptionConsumerImplTest {
     when(committerFactory.newCommitter(Partition.of(8))).thenReturn(committer8);
   }
 
-  private static SequencedMessage message(long offset) {
+  private static SequencedMessage message(Offset offset) {
     return SequencedMessage.of(
-        Message.builder().build(), Timestamp.getDefaultInstance(), Offset.of(offset), 0L);
+        Message.builder().build(), Timestamp.getDefaultInstance(), Offset.of(offset.value()), 0L);
+  }
+
+  private static SequencedMessage message(long offset) {
+    return message(Offset.of(offset));
   }
 
   private static void assertConsumerRecordsEqual(
@@ -118,37 +124,51 @@ public class SingleSubscriptionConsumerImplTest {
     verify(subscriberFactory).newPullSubscriber(Partition.of(8), DEFAULT_SEEK);
     verify(committerFactory).newCommitter(Partition.of(5));
     verify(committerFactory).newCommitter(Partition.of(8));
-    when(subscriber5.pull()).thenReturn(ImmutableList.of());
-    when(subscriber8.pull()).thenReturn(ImmutableList.of());
     // -----------------------------
-    // Pulls ceil(15ms / 10ms) + 1 times (3) when no messages are returned
-    assertConsumerRecordsEqual(consumer.poll(Duration.ofMillis(15)), ImmutableListMultimap.of());
-    verify(subscriber5, times(3)).pull();
-    verify(subscriber8, times(3)).pull();
+    // No data available
+    when(subscriber5.onData()).thenReturn(SettableApiFuture.create());
+    when(subscriber8.onData()).thenReturn(SettableApiFuture.create());
+    assertConsumerRecordsEqual(consumer.poll(Duration.ZERO), ImmutableListMultimap.of());
+    verify(subscriber5, times(1)).onData();
+    verify(subscriber8, times(1)).onData();
+    verify(subscriber5, times(0)).messageIfAvailable();
+    verify(subscriber8, times(0)).messageIfAvailable();
     verify(committer5, times(0)).commitOffset(any());
     verify(committer8, times(0)).commitOffset(any());
     // -----------------------------
     // Pulls once when messages are available.
-    when(subscriber5.pull()).thenReturn(ImmutableList.of(message(1), message(2), message(3)));
-    when(subscriber8.pull()).thenReturn(ImmutableList.of(message(1), message(2), message(4)));
+    when(subscriber5.onData()).thenReturn(ApiFutures.immediateFuture(null));
+    when(subscriber8.onData()).thenReturn(ApiFutures.immediateFuture(null));
+    when(subscriber5.messageIfAvailable())
+        .thenReturn(Optional.of(message(1)))
+        .thenReturn(Optional.of(message(2)))
+        .thenReturn(Optional.of(message(3)))
+        .thenReturn(Optional.empty());
+    when(subscriber8.messageIfAvailable())
+        .thenReturn(Optional.of(message(1)))
+        .thenReturn(Optional.of(message(2)))
+        .thenReturn(Optional.of(message(4)))
+        .thenReturn(Optional.empty());
     assertConsumerRecordsEqual(
-        consumer.poll(Duration.ofMillis(15)),
+        consumer.poll(Duration.ofDays(1)), // Still returns immediately
         ImmutableListMultimap.<Partition, Offset>builder()
             .putAll(Partition.of(5), ImmutableList.of(Offset.of(1), Offset.of(2), Offset.of(3)))
             .putAll(Partition.of(8), ImmutableList.of(Offset.of(1), Offset.of(2), Offset.of(4)))
             .build());
-    verify(subscriber5, times(4)).pull();
-    verify(subscriber8, times(4)).pull();
+    verify(subscriber5, times(2)).onData();
+    verify(subscriber8, times(2)).onData();
+    verify(subscriber5, times(4)).messageIfAvailable();
+    verify(subscriber8, times(4)).messageIfAvailable();
     verify(committer5, times(0)).commitOffset(any());
     verify(committer8, times(0)).commitOffset(any());
 
     // --------------------------
-    // Zero duration poll pulls once.
-    when(subscriber5.pull()).thenReturn(ImmutableList.of());
-    when(subscriber8.pull()).thenReturn(ImmutableList.of());
+    // No data available no commit
+    when(subscriber5.onData()).thenReturn(SettableApiFuture.create());
+    when(subscriber8.onData()).thenReturn(SettableApiFuture.create());
     assertConsumerRecordsEqual(consumer.poll(Duration.ZERO), ImmutableListMultimap.of());
-    verify(subscriber5, times(5)).pull();
-    verify(subscriber8, times(5)).pull();
+    verify(subscriber5, times(4)).messageIfAvailable();
+    verify(subscriber8, times(4)).messageIfAvailable();
     verify(committer5, times(0)).commitOffset(any());
     verify(committer8, times(0)).commitOffset(any());
     // --------------------------
@@ -186,43 +206,55 @@ public class SingleSubscriptionConsumerImplTest {
     verify(subscriberFactory).newPullSubscriber(Partition.of(8), DEFAULT_SEEK);
     verify(committerFactory).newCommitter(Partition.of(5));
     verify(committerFactory).newCommitter(Partition.of(8));
-    when(subscriber5.pull()).thenReturn(ImmutableList.of());
-    when(subscriber8.pull()).thenReturn(ImmutableList.of());
     // -----------------------------
-    // Pulls ceil(15ms / 10ms) + 1 times (3) when no messages are returned
-    assertConsumerRecordsEqual(consumer.poll(Duration.ofMillis(15)), ImmutableListMultimap.of());
-    verify(subscriber5, times(3)).pull();
-    verify(subscriber8, times(3)).pull();
+    // No data available
+    when(subscriber5.onData()).thenReturn(SettableApiFuture.create());
+    when(subscriber8.onData()).thenReturn(SettableApiFuture.create());
+    assertConsumerRecordsEqual(consumer.poll(Duration.ZERO), ImmutableListMultimap.of());
+    verify(subscriber5, times(1)).onData();
+    verify(subscriber8, times(1)).onData();
+    verify(subscriber5, times(0)).messageIfAvailable();
+    verify(subscriber8, times(0)).messageIfAvailable();
     verify(committer5, times(0)).commitOffset(any());
     verify(committer8, times(0)).commitOffset(any());
     // -----------------------------
     // Pulls once when messages are available.
-    when(subscriber5.pull()).thenReturn(ImmutableList.of(message(1), message(2), message(3)));
-    when(subscriber8.pull()).thenReturn(ImmutableList.of(message(1), message(2), message(4)));
+    when(subscriber5.onData()).thenReturn(ApiFutures.immediateFuture(null));
+    when(subscriber8.onData()).thenReturn(ApiFutures.immediateFuture(null));
+    when(subscriber5.messageIfAvailable())
+        .thenReturn(Optional.of(message(1)))
+        .thenReturn(Optional.of(message(2)))
+        .thenReturn(Optional.of(message(3)))
+        .thenReturn(Optional.empty());
+    when(subscriber8.messageIfAvailable())
+        .thenReturn(Optional.of(message(1)))
+        .thenReturn(Optional.of(message(2)))
+        .thenReturn(Optional.of(message(4)))
+        .thenReturn(Optional.empty());
     assertConsumerRecordsEqual(
-        consumer.poll(Duration.ofMillis(15)),
+        consumer.poll(Duration.ofDays(1)), // Still returns immediately
         ImmutableListMultimap.<Partition, Offset>builder()
             .putAll(Partition.of(5), ImmutableList.of(Offset.of(1), Offset.of(2), Offset.of(3)))
             .putAll(Partition.of(8), ImmutableList.of(Offset.of(1), Offset.of(2), Offset.of(4)))
             .build());
-    verify(subscriber5, times(4)).pull();
-    verify(subscriber8, times(4)).pull();
+    verify(subscriber5, times(2)).onData();
+    verify(subscriber8, times(2)).onData();
+    verify(subscriber5, times(4)).messageIfAvailable();
+    verify(subscriber8, times(4)).messageIfAvailable();
     verify(committer5, times(0)).commitOffset(any());
     verify(committer8, times(0)).commitOffset(any());
 
     // --------------------------
-    // Zero duration poll pulls once, commits previous offsets.
+    // No data poll commits previous offsets.
     SettableApiFuture<Void> commit5 = SettableApiFuture.create();
     SettableApiFuture<Void> commit8 = SettableApiFuture.create();
     // Commits are last received + 1
     when(committer5.commitOffset(Offset.of(4))).thenReturn(commit5);
     when(committer8.commitOffset(Offset.of(5))).thenReturn(commit8);
 
-    when(subscriber5.pull()).thenReturn(ImmutableList.of());
-    when(subscriber8.pull()).thenReturn(ImmutableList.of());
+    when(subscriber5.onData()).thenReturn(SettableApiFuture.create());
+    when(subscriber8.onData()).thenReturn(SettableApiFuture.create());
     assertConsumerRecordsEqual(consumer.poll(Duration.ZERO), ImmutableListMultimap.of());
-    verify(subscriber5, times(5)).pull();
-    verify(subscriber8, times(5)).pull();
     verify(committer5).commitOffset(Offset.of(4));
     verify(committer8).commitOffset(Offset.of(5));
     commit5.set(null);
@@ -238,21 +270,21 @@ public class SingleSubscriptionConsumerImplTest {
   }
 
   @Test
-  public void wakeupBeforePoll() throws Exception {
+  public void wakeupBeforePoll() {
     consumer.setAssignment(ImmutableSet.of(Partition.of(5)));
-    when(subscriber5.pull()).thenReturn(ImmutableList.of());
+    when(subscriber5.onData()).thenReturn(SettableApiFuture.create());
     consumer.wakeup();
     assertThrows(WakeupException.class, () -> consumer.poll(Duration.ofMillis(15)));
   }
 
   @Test
-  public void wakeupDuringPoll() throws Exception {
+  public void wakeupDuringPoll() {
     consumer.setAssignment(ImmutableSet.of(Partition.of(5)));
-    when(subscriber5.pull())
+    when(subscriber5.onData())
         .thenAnswer(
             args -> {
               consumer.wakeup();
-              return ImmutableList.of();
+              return SettableApiFuture.create();
             });
     assertThrows(WakeupException.class, () -> consumer.poll(Duration.ofDays(1)));
   }
@@ -271,6 +303,31 @@ public class SingleSubscriptionConsumerImplTest {
     verify(committer8).startAsync();
     verify(subscriber5).close();
     verify(committer5).stopAsync();
+  }
+
+  @Test
+  public void assignmentChangeMakesPollReturn() throws Exception {
+    consumer.setAssignment(ImmutableSet.of(Partition.of(5)));
+    assertThat(consumer.assignment()).isEqualTo(ImmutableSet.of(Partition.of(5)));
+    verify(subscriberFactory).newPullSubscriber(Partition.of(5), DEFAULT_SEEK);
+    when(subscriber5.onData()).thenReturn(SettableApiFuture.create());
+    SettableApiFuture<Void> pollRunning = SettableApiFuture.create();
+    when(subscriber5.onData())
+        .thenAnswer(
+            args -> {
+              pollRunning.set(null);
+              return SettableApiFuture.create(); // never finishes
+            });
+    SettableApiFuture<Void> pollDone = SettableApiFuture.create();
+    SystemExecutors.getAlarmExecutor()
+        .execute(
+            () -> {
+              assertThat(consumer.poll(Duration.ofDays(1)).isEmpty()).isTrue();
+              pollDone.set(null);
+            });
+    pollRunning.get();
+    consumer.setAssignment(ImmutableSet.of());
+    pollDone.get();
   }
 
   @Test
@@ -312,10 +369,13 @@ public class SingleSubscriptionConsumerImplTest {
   @Test
   public void position() throws Exception {
     consumer.setAssignment(ImmutableSet.of(Partition.of(5)));
-    assertThat(consumer.position(Partition.of(8))).isEmpty();
-    when(subscriber5.nextOffset()).thenReturn(Optional.empty());
     assertThat(consumer.position(Partition.of(5))).isEmpty();
-    when(subscriber5.nextOffset()).thenReturn(Optional.of(example(Offset.class)));
-    assertThat(consumer.position(Partition.of(5))).hasValue(example(Offset.class).value());
+    assertThat(consumer.position(Partition.of(8))).isEmpty();
+    when(subscriber5.onData()).thenReturn(ApiFutures.immediateFuture(null));
+    when(subscriber5.messageIfAvailable())
+        .thenReturn(Optional.of(message(example(Offset.class))))
+        .thenReturn(Optional.empty());
+    assertThat(consumer.poll(Duration.ofMillis(0)).count()).isEqualTo(1);
+    assertThat(consumer.position(Partition.of(5))).hasValue(example(Offset.class).value() + 1);
   }
 }
