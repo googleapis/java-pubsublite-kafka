@@ -26,7 +26,7 @@ import com.google.cloud.pubsublite.CloudZone;
 import com.google.cloud.pubsublite.SubscriptionPath;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.cloudpubsub.FlowControlSettings;
-import com.google.cloud.pubsublite.internal.BufferingPullSubscriber;
+import com.google.cloud.pubsublite.internal.BlockingPullSubscriberImpl;
 import com.google.cloud.pubsublite.internal.CursorClient;
 import com.google.cloud.pubsublite.internal.CursorClientSettings;
 import com.google.cloud.pubsublite.internal.TopicStatsClient;
@@ -124,7 +124,7 @@ public abstract class ConsumerSettings {
                     throw toCanonical(t).underlying;
                   }
                 };
-            return new BufferingPullSubscriber(
+            return new BlockingPullSubscriberImpl(
                 subscriberFactory, perPartitionFlowControlSettings());
           };
       CommitterFactory committerFactory =
