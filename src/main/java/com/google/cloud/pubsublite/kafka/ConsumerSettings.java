@@ -22,7 +22,7 @@ import com.google.api.gax.rpc.ApiException;
 import com.google.auto.value.AutoValue;
 import com.google.cloud.pubsublite.AdminClient;
 import com.google.cloud.pubsublite.AdminClientSettings;
-import com.google.cloud.pubsublite.CloudZone;
+import com.google.cloud.pubsublite.CloudRegion;
 import com.google.cloud.pubsublite.SubscriptionPath;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.cloudpubsub.FlowControlSettings;
@@ -79,9 +79,9 @@ public abstract class ConsumerSettings {
   }
 
   public Consumer<byte[], byte[]> instantiate() throws ApiException {
-    CloudZone zone = subscriptionPath().location();
+    CloudRegion region = subscriptionPath().location().extractRegion();
     try (AdminClient adminClient =
-        AdminClient.create(AdminClientSettings.newBuilder().setRegion(zone.region()).build())) {
+        AdminClient.create(AdminClientSettings.newBuilder().setRegion(region).build())) {
       Subscription subscription = adminClient.getSubscription(subscriptionPath()).get();
       TopicPath topic = TopicPath.parse(subscription.getTopic());
       AssignerFactory assignerFactory =
@@ -93,8 +93,7 @@ public abstract class ConsumerSettings {
                   .setServiceClient(
                       PartitionAssignmentServiceClient.create(
                           ServiceClients.addDefaultSettings(
-                              subscriptionPath().location().region(),
-                              PartitionAssignmentServiceSettings.newBuilder())))
+                              region, PartitionAssignmentServiceSettings.newBuilder())))
                   .build()
                   .instantiate();
             } catch (Throwable t) {
@@ -113,7 +112,7 @@ public abstract class ConsumerSettings {
                         .setServiceClient(
                             SubscriberServiceClient.create(
                                 ServiceClients.addDefaultSettings(
-                                    subscriptionPath().location().region(),
+                                    region,
                                     ServiceClients.addDefaultMetadata(
                                         PubsubContext.of(FRAMEWORK),
                                         RoutingMetadata.of(subscriptionPath(), partition),
@@ -136,8 +135,7 @@ public abstract class ConsumerSettings {
                   .setServiceClient(
                       CursorServiceClient.create(
                           ServiceClients.addDefaultSettings(
-                              subscriptionPath().location().region(),
-                              CursorServiceSettings.newBuilder())))
+                              region, CursorServiceSettings.newBuilder())))
                   .build()
                   .instantiate();
             } catch (Throwable t) {
@@ -150,14 +148,12 @@ public abstract class ConsumerSettings {
                   topic, autocommit(), pullSubscriberFactory, committerFactory);
 
       CursorClient cursorClient =
-          CursorClient.create(CursorClientSettings.newBuilder().setRegion(zone.region()).build());
+          CursorClient.create(CursorClientSettings.newBuilder().setRegion(region).build());
       TopicStatsClient topicStatsClient =
-          TopicStatsClient.create(
-              TopicStatsClientSettings.newBuilder().setRegion(zone.region()).build());
+          TopicStatsClient.create(TopicStatsClientSettings.newBuilder().setRegion(region).build());
       SharedBehavior shared =
           new SharedBehavior(
-              AdminClient.create(
-                  AdminClientSettings.newBuilder().setRegion(topic.location().region()).build()));
+              AdminClient.create(AdminClientSettings.newBuilder().setRegion(region).build()));
       return new PubsubLiteConsumer(
           subscriptionPath(),
           topic,

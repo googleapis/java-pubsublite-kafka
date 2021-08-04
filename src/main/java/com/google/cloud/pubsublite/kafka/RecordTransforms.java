@@ -38,7 +38,7 @@ class RecordTransforms {
             .setKey(ByteString.copyFrom(record.key()))
             .setData(ByteString.copyFrom(record.value()));
     if (record.timestamp() != null) {
-      builder.setEventTime(Timestamps.fromMillis(record.timestamp()));
+      builder = builder.setEventTime(Timestamps.fromMillis(record.timestamp()));
     }
     ImmutableListMultimap.Builder<String, ByteString> attributes = ImmutableListMultimap.builder();
     record
