@@ -51,7 +51,7 @@ public abstract class ProducerSettings {
 
   private AdminClient newAdminClient() {
     return AdminClient.create(
-        AdminClientSettings.newBuilder().setRegion(topicPath().location().region()).build());
+        AdminClientSettings.newBuilder().setRegion(topicPath().location().extractRegion()).build());
   }
 
   public Producer<byte[], byte[]> instantiate() throws ApiException {
@@ -66,7 +66,7 @@ public abstract class ProducerSettings {
                         .setServiceClient(
                             PublisherServiceClient.create(
                                 ServiceClients.addDefaultSettings(
-                                    topicPath().location().region(),
+                                    topicPath().location().extractRegion(),
                                     ServiceClients.addDefaultMetadata(
                                         PubsubContext.of(FRAMEWORK),
                                         RoutingMetadata.of(topicPath(), partition),

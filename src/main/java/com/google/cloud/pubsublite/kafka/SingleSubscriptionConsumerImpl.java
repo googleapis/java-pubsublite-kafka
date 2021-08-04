@@ -98,12 +98,14 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
   }
 
   @Override
+  @SuppressWarnings("GuardedBy")
   public void setAssignment(Set<Partition> assignment) {
     try (CloseableMonitor.Hold h = monitor.enter()) {
+
       List<SubscriberState> unassigned =
           ImmutableSet.copyOf(partitions.keySet()).stream()
               .filter(p -> !assignment.contains(p))
-              .map(p -> partitions.remove(p))
+              .map(partitions::remove)
               .collect(Collectors.toList());
       for (SubscriberState state : unassigned) {
         state.subscriber.close();
@@ -241,6 +243,7 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
   }
 
   @Override
+  @SuppressWarnings("GuardedBy")
   public ApiFuture<Void> commit(Map<Partition, Offset> commitOffsets) {
     try (CloseableMonitor.Hold h = monitor.enter()) {
       ImmutableList.Builder<ApiFuture<?>> commitFutures = ImmutableList.builder();
@@ -282,8 +285,10 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
 
   @Override
   public Optional<Long> position(Partition partition) {
-    if (!partitions.containsKey(partition)) return Optional.empty();
-    return partitions.get(partition).lastReceived.map(lastReceived -> lastReceived.value() + 1);
+    try (CloseableMonitor.Hold h = monitor.enter()) {
+      if (!partitions.containsKey(partition)) return Optional.empty();
+      return partitions.get(partition).lastReceived.map(lastReceived -> lastReceived.value() + 1);
+    }
   }
 
   @Override
