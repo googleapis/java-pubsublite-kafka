@@ -101,7 +101,7 @@ public abstract class ConsumerSettings {
             }
           };
       PullSubscriberFactory pullSubscriberFactory =
-          (partition, initialSeek) -> {
+          (partition, initialSeek, resetHandler) -> {
             SubscriberFactory subscriberFactory =
                 consumer -> {
                   try {
@@ -118,6 +118,7 @@ public abstract class ConsumerSettings {
                                         RoutingMetadata.of(subscriptionPath(), partition),
                                         SubscriberServiceSettings.newBuilder()))))
                         .setInitialLocation(initialSeek)
+                        .setResetHandler(resetHandler)
                         .build();
                   } catch (Throwable t) {
                     throw toCanonical(t).underlying;

@@ -93,8 +93,10 @@ public class SingleSubscriptionConsumerImplTest {
         new SingleSubscriptionConsumerImpl(
             example(TopicPath.class), false, subscriberFactory, committerFactory);
     verifyNoInteractions(subscriberFactory, committerFactory);
-    when(subscriberFactory.newPullSubscriber(eq(Partition.of(5)), any())).thenReturn(subscriber5);
-    when(subscriberFactory.newPullSubscriber(eq(Partition.of(8)), any())).thenReturn(subscriber8);
+    when(subscriberFactory.newPullSubscriber(eq(Partition.of(5)), any(), any()))
+        .thenReturn(subscriber5);
+    when(subscriberFactory.newPullSubscriber(eq(Partition.of(8)), any(), any()))
+        .thenReturn(subscriber8);
     when(committerFactory.newCommitter(Partition.of(5))).thenReturn(committer5);
     when(committerFactory.newCommitter(Partition.of(8))).thenReturn(committer8);
   }
@@ -120,8 +122,8 @@ public class SingleSubscriptionConsumerImplTest {
   @Test
   public void assignAndPoll() throws Exception {
     consumer.setAssignment(ImmutableSet.of(Partition.of(5), Partition.of(8)));
-    verify(subscriberFactory).newPullSubscriber(Partition.of(5), DEFAULT_SEEK);
-    verify(subscriberFactory).newPullSubscriber(Partition.of(8), DEFAULT_SEEK);
+    verify(subscriberFactory).newPullSubscriber(eq(Partition.of(5)), eq(DEFAULT_SEEK), any());
+    verify(subscriberFactory).newPullSubscriber(eq(Partition.of(8)), eq(DEFAULT_SEEK), any());
     verify(committerFactory).newCommitter(Partition.of(5));
     verify(committerFactory).newCommitter(Partition.of(8));
     // -----------------------------
@@ -202,8 +204,8 @@ public class SingleSubscriptionConsumerImplTest {
         new SingleSubscriptionConsumerImpl(
             example(TopicPath.class), true, subscriberFactory, committerFactory);
     consumer.setAssignment(ImmutableSet.of(Partition.of(5), Partition.of(8)));
-    verify(subscriberFactory).newPullSubscriber(Partition.of(5), DEFAULT_SEEK);
-    verify(subscriberFactory).newPullSubscriber(Partition.of(8), DEFAULT_SEEK);
+    verify(subscriberFactory).newPullSubscriber(eq(Partition.of(5)), eq(DEFAULT_SEEK), any());
+    verify(subscriberFactory).newPullSubscriber(eq(Partition.of(8)), eq(DEFAULT_SEEK), any());
     verify(committerFactory).newCommitter(Partition.of(5));
     verify(committerFactory).newCommitter(Partition.of(8));
     // -----------------------------
@@ -293,12 +295,12 @@ public class SingleSubscriptionConsumerImplTest {
   public void assignmentChange() throws Exception {
     consumer.setAssignment(ImmutableSet.of(Partition.of(5)));
     assertThat(consumer.assignment()).isEqualTo(ImmutableSet.of(Partition.of(5)));
-    verify(subscriberFactory).newPullSubscriber(Partition.of(5), DEFAULT_SEEK);
+    verify(subscriberFactory).newPullSubscriber(eq(Partition.of(5)), eq(DEFAULT_SEEK), any());
     verify(committerFactory).newCommitter(Partition.of(5));
     verify(committer5).startAsync();
     consumer.setAssignment(ImmutableSet.of(Partition.of(8)));
     assertThat(consumer.assignment()).isEqualTo(ImmutableSet.of(Partition.of(8)));
-    verify(subscriberFactory).newPullSubscriber(Partition.of(8), DEFAULT_SEEK);
+    verify(subscriberFactory).newPullSubscriber(eq(Partition.of(8)), eq(DEFAULT_SEEK), any());
     verify(committerFactory).newCommitter(Partition.of(8));
     verify(committer8).startAsync();
     verify(subscriber5).close();
@@ -309,7 +311,7 @@ public class SingleSubscriptionConsumerImplTest {
   public void assignmentChangeMakesPollReturn() throws Exception {
     consumer.setAssignment(ImmutableSet.of(Partition.of(5)));
     assertThat(consumer.assignment()).isEqualTo(ImmutableSet.of(Partition.of(5)));
-    verify(subscriberFactory).newPullSubscriber(Partition.of(5), DEFAULT_SEEK);
+    verify(subscriberFactory).newPullSubscriber(eq(Partition.of(5)), eq(DEFAULT_SEEK), any());
     when(subscriber5.onData()).thenReturn(SettableApiFuture.create());
     SettableApiFuture<Void> pollRunning = SettableApiFuture.create();
     when(subscriber5.onData())
@@ -358,12 +360,13 @@ public class SingleSubscriptionConsumerImplTest {
   @Test
   public void seekAssigned() throws Exception {
     consumer.setAssignment(ImmutableSet.of(Partition.of(5)));
-    verify(subscriberFactory).newPullSubscriber(Partition.of(5), DEFAULT_SEEK);
+    verify(subscriberFactory).newPullSubscriber(eq(Partition.of(5)), eq(DEFAULT_SEEK), any());
     verify(committerFactory).newCommitter(Partition.of(5));
-    when(subscriberFactory.newPullSubscriber(Partition.of(5), OFFSET_SEEK)).thenReturn(subscriber8);
+    when(subscriberFactory.newPullSubscriber(eq(Partition.of(5)), eq(OFFSET_SEEK), any()))
+        .thenReturn(subscriber8);
     consumer.doSeek(Partition.of(5), OFFSET_SEEK);
     verify(subscriber5).close();
-    verify(subscriberFactory).newPullSubscriber(Partition.of(5), OFFSET_SEEK);
+    verify(subscriberFactory).newPullSubscriber(eq(Partition.of(5)), eq(OFFSET_SEEK), any());
   }
 
   @Test
