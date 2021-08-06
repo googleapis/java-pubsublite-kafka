@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.5.0](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.4.0...v0.5.0) (2021-08-06)
+
+
+### Features
+
+* Add setTopicPathOverride to consumer settings ([#174](https://www.github.com/googleapis/java-pubsublite-kafka/issues/174)) ([7106862](https://www.github.com/googleapis/java-pubsublite-kafka/commit/7106862a89697a2c8e99d5f119194510ef8de806))
+
+
+### Bug Fixes
+
+* Add shopt -s nullglob to dependencies script ([25ce9bd](https://www.github.com/googleapis/java-pubsublite-kafka/commit/25ce9bd0388bc59d85aaf98b942a1fdd0d4e86aa))
+* update codeowner team in repo metadata ([#152](https://www.github.com/googleapis/java-pubsublite-kafka/issues/152)) ([59a8986](https://www.github.com/googleapis/java-pubsublite-kafka/commit/59a89867a98b06ca02b89cb883987d1c5811f727))
+* Update dependencies.sh to not break on mac ([#161](https://www.github.com/googleapis/java-pubsublite-kafka/issues/161)) ([25ce9bd](https://www.github.com/googleapis/java-pubsublite-kafka/commit/25ce9bd0388bc59d85aaf98b942a1fdd0d4e86aa))
+* Use BlockingPullSubscriber instead of BufferingPullSubscriber in kafka client ([#150](https://www.github.com/googleapis/java-pubsublite-kafka/issues/150)) ([a3cdd44](https://www.github.com/googleapis/java-pubsublite-kafka/commit/a3cdd44a8607bf0c8615e4a5c73f75ce5dd0a1ec))
+
+
+### Dependencies
+
+* update dependency com.google.api.grpc:proto-google-cloud-pubsublite-v1 to v0.16.0 ([#155](https://www.github.com/googleapis/java-pubsublite-kafka/issues/155)) ([623b780](https://www.github.com/googleapis/java-pubsublite-kafka/commit/623b780642c1ac32ea5e3f497e2d801ebbc072f6))
+* update dependency com.google.api.grpc:proto-google-cloud-pubsublite-v1 to v0.16.1 ([#158](https://www.github.com/googleapis/java-pubsublite-kafka/issues/158)) ([8b110dc](https://www.github.com/googleapis/java-pubsublite-kafka/commit/8b110dcfeb0577d10b000e06d9eb96036fc8fd93))
+* update dependency com.google.cloud:google-cloud-pubsublite to v0.16.0 ([#156](https://www.github.com/googleapis/java-pubsublite-kafka/issues/156)) ([fc9438b](https://www.github.com/googleapis/java-pubsublite-kafka/commit/fc9438bae96cc302bbb05ec50b4300157b605725))
+* update dependency com.google.cloud:google-cloud-pubsublite to v0.16.1 ([#159](https://www.github.com/googleapis/java-pubsublite-kafka/issues/159)) ([49f5238](https://www.github.com/googleapis/java-pubsublite-kafka/commit/49f52389de88d4431f0d44412c72b8249bf3dc5f))
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v0.16.0 ([#157](https://www.github.com/googleapis/java-pubsublite-kafka/issues/157)) ([ed78d9d](https://www.github.com/googleapis/java-pubsublite-kafka/commit/ed78d9d5b40c0394a9e2d442ab0a55d26559dc0d))
+* version bump underlying pubsub lite library ([#170](https://www.github.com/googleapis/java-pubsublite-kafka/issues/170)) ([665890e](https://www.github.com/googleapis/java-pubsublite-kafka/commit/665890ef224ebd93c4b3600627171a2accb90f00))
+
 ## [0.4.0](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.3.0...v0.4.0) (2021-06-10)
 
 
