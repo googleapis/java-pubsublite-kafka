@@ -47,6 +47,7 @@ import com.google.cloud.pubsublite.v1.PartitionAssignmentServiceClient;
 import com.google.cloud.pubsublite.v1.PartitionAssignmentServiceSettings;
 import com.google.cloud.pubsublite.v1.SubscriberServiceClient;
 import com.google.cloud.pubsublite.v1.SubscriberServiceSettings;
+import java.util.Optional;
 import org.apache.kafka.clients.consumer.Consumer;
 
 @AutoValue
@@ -61,6 +62,8 @@ public abstract class ConsumerSettings {
   // Optional parameters.
   abstract boolean autocommit();
 
+  abstract Optional<TopicPath> topicPathOverride();
+
   public static Builder newBuilder() {
     return (new AutoValue_ConsumerSettings.Builder()).setAutocommit(false);
   }
@@ -68,22 +71,46 @@ public abstract class ConsumerSettings {
   @AutoValue.Builder
   public abstract static class Builder {
     // Required parameters.
+    /**
+     * The subscription path to use. Only the topic corresponding to this subscription can be
+     * subscribed to.
+     */
     public abstract Builder setSubscriptionPath(SubscriptionPath path);
 
+    /** The per-partition flow control settings. */
     public abstract Builder setPerPartitionFlowControlSettings(FlowControlSettings settings);
 
     // Optional parameters.
+    /** The autocommit mode. */
     public abstract Builder setAutocommit(boolean autocommit);
+
+    /**
+     * An override for the TopicPath used by this consumer.
+     *
+     * <p>When this is set, the topic path of the subscription will not be fetched: instead, the
+     * topic used in methods will be compared with the provided TopicPath object.
+     *
+     * <p>This is useful if you do not have the pubsublite.subscriptions.get permission for the
+     * subscription.
+     */
+    public abstract Builder setTopicPathOverride(TopicPath topicPath);
 
     public abstract ConsumerSettings build();
   }
 
   public Consumer<byte[], byte[]> instantiate() throws ApiException {
-    CloudRegion region = subscriptionPath().location().extractRegion();
-    try (AdminClient adminClient =
-        AdminClient.create(AdminClientSettings.newBuilder().setRegion(region).build())) {
-      Subscription subscription = adminClient.getSubscription(subscriptionPath()).get();
-      TopicPath topic = TopicPath.parse(subscription.getTopic());
+    try {
+      CloudRegion region = subscriptionPath().location().extractRegion();
+      TopicPath topic;
+      if (topicPathOverride().isPresent()) {
+        topic = topicPathOverride().get();
+      } else {
+        try (AdminClient adminClient =
+            AdminClient.create(AdminClientSettings.newBuilder().setRegion(region).build())) {
+          Subscription subscription = adminClient.getSubscription(subscriptionPath()).get();
+          topic = TopicPath.parse(subscription.getTopic());
+        }
+      }
       AssignerFactory assignerFactory =
           receiver -> {
             try {
