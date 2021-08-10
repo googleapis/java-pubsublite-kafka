@@ -33,6 +33,7 @@ import com.google.cloud.pubsublite.Partition;
 import com.google.cloud.pubsublite.SequencedMessage;
 import com.google.cloud.pubsublite.internal.BlockingPullSubscriber;
 import com.google.cloud.pubsublite.internal.CheckedApiException;
+import com.google.cloud.pubsublite.internal.testing.FakeApiService;
 import com.google.cloud.pubsublite.internal.wire.Committer;
 import com.google.cloud.pubsublite.internal.wire.SubscriberResetHandler;
 import com.google.cloud.pubsublite.proto.SeekRequest;
@@ -47,6 +48,7 @@ import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 @RunWith(JUnit4.class)
 public class SinglePartitionSubscriberTest {
@@ -54,9 +56,11 @@ public class SinglePartitionSubscriberTest {
       SeekRequest.newBuilder().setNamedTarget(NamedTarget.COMMITTED_CURSOR).build();
   private static final Partition PARTITION = Partition.of(2);
 
+  abstract static class FakeCommitter extends FakeApiService implements Committer {}
+
   @Mock PullSubscriberFactory subscriberFactory;
-  @Mock Committer committer;
   @Mock BlockingPullSubscriber pullSubscriber;
+  @Spy FakeCommitter committer;
 
   @Captor private ArgumentCaptor<SubscriberResetHandler> resetHandlerCaptor;
 
@@ -67,8 +71,6 @@ public class SinglePartitionSubscriberTest {
     initMocks(this);
     when(subscriberFactory.newPullSubscriber(eq(PARTITION), eq(INITIAL_SEEK), any()))
         .thenReturn(pullSubscriber);
-    subscriber =
-        new SinglePartitionSubscriber(subscriberFactory, PARTITION, INITIAL_SEEK, committer);
   }
 
   @After
@@ -85,8 +87,12 @@ public class SinglePartitionSubscriberTest {
 
   @Test
   public void pullAndCommit() throws Exception {
+    subscriber =
+        new SinglePartitionSubscriber(subscriberFactory, PARTITION, INITIAL_SEEK, committer, true);
     verify(subscriberFactory).newPullSubscriber(eq(PARTITION), eq(INITIAL_SEEK), any());
+    verify(committer).state();
 
+    // Pull messages.
     when(pullSubscriber.messageIfAvailable())
         .thenReturn(Optional.of(message(3)))
         .thenReturn(Optional.of(message(5)))
@@ -96,6 +102,7 @@ public class SinglePartitionSubscriberTest {
     assertThat(subscriber.position()).hasValue(8);
     verify(pullSubscriber, times(4)).messageIfAvailable();
 
+    // Auto commit handled.
     when(committer.commitOffset(Offset.of(8))).thenReturn(ApiFutures.immediateFuture(null));
     subscriber.autoCommit();
     verify(committer).commitOffset(Offset.of(8));
@@ -105,10 +112,14 @@ public class SinglePartitionSubscriberTest {
   }
 
   @Test
-  public void resetSubscriber() throws Exception {
+  public void resetSubscriberEnabled() throws Exception {
+    subscriber =
+        new SinglePartitionSubscriber(subscriberFactory, PARTITION, INITIAL_SEEK, committer, true);
     verify(subscriberFactory)
         .newPullSubscriber(eq(PARTITION), eq(INITIAL_SEEK), resetHandlerCaptor.capture());
+    verify(committer).state();
 
+    // Pull messages.
     when(pullSubscriber.messageIfAvailable())
         .thenReturn(Optional.of(message(3)))
         .thenReturn(Optional.of(message(5)))
@@ -116,6 +127,7 @@ public class SinglePartitionSubscriberTest {
         .thenReturn(Optional.empty());
     assertThat(subscriber.getMessages()).containsExactly(message(3), message(5), message(7));
 
+    // Subscriber reset handled.
     when(pullSubscriber.messageIfAvailable())
         .thenReturn(Optional.of(message(9)))
         .thenReturn(Optional.empty());
@@ -123,10 +135,50 @@ public class SinglePartitionSubscriberTest {
     verify(committer).waitUntilEmpty();
     verify(pullSubscriber, times(6)).messageIfAvailable();
 
-    // Subsequent messages are discarded.
+    // Undelivered messages are discarded.
     assertThat(subscriber.position()).hasValue(8);
 
     // Auto commit does nothing.
     subscriber.autoCommit();
+
+    // Pull messages after reset.
+    when(pullSubscriber.messageIfAvailable())
+        .thenReturn(Optional.of(message(2)))
+        .thenReturn(Optional.empty());
+    assertThat(subscriber.getMessages()).containsExactly(message(2));
+    assertThat(subscriber.position()).hasValue(3);
+    verify(pullSubscriber, times(8)).messageIfAvailable();
+
+    // Auto commit handled.
+    when(committer.commitOffset(Offset.of(3))).thenReturn(ApiFutures.immediateFuture(null));
+    subscriber.autoCommit();
+    verify(committer).commitOffset(Offset.of(3));
+  }
+
+  @Test
+  public void resetSubscriberDisabled() throws Exception {
+    subscriber =
+        new SinglePartitionSubscriber(subscriberFactory, PARTITION, INITIAL_SEEK, committer, false);
+    verify(subscriberFactory)
+        .newPullSubscriber(eq(PARTITION), eq(INITIAL_SEEK), resetHandlerCaptor.capture());
+    verify(committer).state();
+
+    // Pull messages.
+    when(pullSubscriber.messageIfAvailable())
+        .thenReturn(Optional.of(message(3)))
+        .thenReturn(Optional.of(message(5)))
+        .thenReturn(Optional.of(message(7)))
+        .thenReturn(Optional.empty());
+    assertThat(subscriber.getMessages()).containsExactly(message(3), message(5), message(7));
+    assertThat(subscriber.position()).hasValue(8);
+    verify(pullSubscriber, times(4)).messageIfAvailable();
+
+    // Subscriber reset not handled.
+    assertThat(resetHandlerCaptor.getValue().handleReset()).isFalse();
+
+    // Auto commit handled.
+    when(committer.commitOffset(Offset.of(8))).thenReturn(ApiFutures.immediateFuture(null));
+    subscriber.autoCommit();
+    verify(committer).commitOffset(Offset.of(8));
   }
 }

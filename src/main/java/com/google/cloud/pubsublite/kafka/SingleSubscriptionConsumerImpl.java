@@ -16,6 +16,7 @@
 
 package com.google.cloud.pubsublite.kafka;
 
+import static com.google.cloud.pubsublite.internal.wire.ApiServiceUtils.blockingShutdown;
 import static com.google.cloud.pubsublite.kafka.KafkaExceptionUtils.toKafka;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -29,7 +30,6 @@ import com.google.cloud.pubsublite.SequencedMessage;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.internal.CloseableMonitor;
 import com.google.cloud.pubsublite.internal.ExtractStatus;
-import com.google.cloud.pubsublite.internal.wire.Committer;
 import com.google.cloud.pubsublite.proto.SeekRequest;
 import com.google.cloud.pubsublite.proto.SeekRequest.NamedTarget;
 import com.google.common.collect.ImmutableList;
@@ -98,16 +98,12 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
               .filter(p -> !assignment.contains(p))
               .map(partitions::remove)
               .collect(Collectors.toList());
-      for (SinglePartitionSubscriber subscriber : unassigned) {
-        subscriber.close();
-      }
+      blockingShutdown(unassigned);
       assignment.stream()
           .filter(p -> !partitions.containsKey(p))
           .forEach(
               ExtractStatus.rethrowAsRuntime(
                   partition -> {
-                    Committer committer = committerFactory.newCommitter(partition);
-                    committer.startAsync().awaitRunning();
                     SinglePartitionSubscriber subscriber =
                         new SinglePartitionSubscriber(
                             subscriberFactory,
@@ -115,7 +111,9 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
                             SeekRequest.newBuilder()
                                 .setNamedTarget(NamedTarget.COMMITTED_CURSOR)
                                 .build(),
-                            committer);
+                            committerFactory.newCommitter(partition),
+                            autocommit);
+                    subscriber.startAsync().awaitRunning();
                     partitions.put(partition, subscriber);
                   }));
       assignmentChanged.set(null);
@@ -208,7 +206,9 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
           });
       return ApiFutures.transform(
           ApiFutures.allAsList(commitFutures),
-          results -> results.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())),
+          results ->
+              ImmutableMap.copyOf(
+                  results.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()))),
           MoreExecutors.directExecutor());
     }
   }
@@ -263,9 +263,7 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
   @Override
   public void close(Duration duration) {
     try (CloseableMonitor.Hold h = monitor.enter()) {
-      for (SinglePartitionSubscriber subscriber : partitions.values()) {
-        subscriber.close();
-      }
+      blockingShutdown(partitions.values());
     } catch (Throwable t) {
       throw toKafka(t);
     }

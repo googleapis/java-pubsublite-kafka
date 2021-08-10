@@ -193,9 +193,7 @@ public class SingleSubscriptionConsumerImplTest {
     verify(subscriber5).close();
     verify(subscriber8).close();
     verify(committer5).stopAsync();
-    verify(committer5).awaitTerminated();
     verify(committer8).stopAsync();
-    verify(committer8).awaitTerminated();
   }
 
   @Test
@@ -266,9 +264,7 @@ public class SingleSubscriptionConsumerImplTest {
     verify(subscriber5).close();
     verify(subscriber8).close();
     verify(committer5).stopAsync();
-    verify(committer5).awaitTerminated();
     verify(committer8).stopAsync();
-    verify(committer8).awaitTerminated();
   }
 
   @Test

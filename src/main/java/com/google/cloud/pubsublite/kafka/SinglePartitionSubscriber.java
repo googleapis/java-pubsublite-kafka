@@ -26,6 +26,7 @@ import com.google.cloud.pubsublite.SequencedMessage;
 import com.google.cloud.pubsublite.internal.BlockingPullSubscriber;
 import com.google.cloud.pubsublite.internal.CheckedApiException;
 import com.google.cloud.pubsublite.internal.CloseableMonitor;
+import com.google.cloud.pubsublite.internal.ProxyService;
 import com.google.cloud.pubsublite.internal.wire.Committer;
 import com.google.cloud.pubsublite.proto.SeekRequest;
 import com.google.common.collect.Iterables;
@@ -35,10 +36,11 @@ import java.util.ArrayDeque;
 import java.util.Optional;
 
 /** Pulls messages and manages commits for a single partition of a subscription. */
-class SinglePartitionSubscriber {
+class SinglePartitionSubscriber extends ProxyService {
   private final PullSubscriberFactory subscriberFactory;
   private final Partition partition;
   private final Committer committer;
+  private final boolean enableReset;
 
   private final CloseableMonitor monitor = new CloseableMonitor();
 
@@ -55,13 +57,32 @@ class SinglePartitionSubscriber {
       PullSubscriberFactory subscriberFactory,
       Partition partition,
       SeekRequest initialSeek,
-      Committer committer)
+      Committer committer,
+      boolean enableReset)
       throws CheckedApiException {
     this.subscriberFactory = subscriberFactory;
     this.partition = partition;
     this.committer = committer;
+    this.enableReset = enableReset;
     this.subscriber =
         subscriberFactory.newPullSubscriber(partition, initialSeek, this::onSubscriberReset);
+    addServices(committer);
+  }
+
+  // ProxyService implementation.
+  @Override
+  protected void start() {}
+
+  @Override
+  protected void stop() {
+    try (CloseableMonitor.Hold h = monitor.enter()) {
+      subscriber.close();
+    }
+  }
+
+  @Override
+  protected void handlePermanentError(CheckedApiException error) {
+    stop();
   }
 
   /** Executes a client-initiated seek. */
@@ -128,14 +149,11 @@ class SinglePartitionSubscriber {
     }
   }
 
-  void close() throws CheckedApiException {
-    try (CloseableMonitor.Hold h = monitor.enter()) {
-      subscriber.close();
-    }
-    committer.stopAsync().awaitTerminated();
-  }
-
   private boolean onSubscriberReset() throws CheckedApiException {
+    if (!enableReset) {
+      return false;
+    }
+
     // Handle an out-of-band seek notification from the server. There must be no pending commits
     // after this function returns.
     try (CloseableMonitor.Hold h = monitor.enter()) {
