@@ -72,6 +72,12 @@ be implemented using Pub/Sub Lite as a backend. The key differences are:
 - ProducerRecord may not specify partition explicitly.
 - Consumers may not dynamically create consumer groups (subscriptions).
 
+Note:
+- In order to use Pub/Sub Lite [seek operations](https://cloud.google.com/pubsub/lite/docs/seek),
+  Consumers must have auto-commit enabled. Consumer seek methods are client-initiated, whereas
+  Pub/Sub Lite seek operations are initiated out-of-band and pushed to Consumers. Both types of
+  seeks should not be used concurrently, as they would interfere with one another.
+
 
 
 #### Publishing messages
