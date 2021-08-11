@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.5.1...v0.6.0) (2021-08-11)
+
+
+### Features
+
+* Reset Consumer upon out-of-band seek ([#172](https://www.github.com/googleapis/java-pubsublite-kafka/issues/172)) ([20ae0ba](https://www.github.com/googleapis/java-pubsublite-kafka/commit/20ae0ba14d7623741b05825be240edcfc33f3974))
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.0.1 ([#181](https://www.github.com/googleapis/java-pubsublite-kafka/issues/181)) ([241f85c](https://www.github.com/googleapis/java-pubsublite-kafka/commit/241f85cefcd874b0291b528b297c24d4867c7002))
+
 ### [0.5.1](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.5.0...v0.5.1) (2021-08-06)
 
 
