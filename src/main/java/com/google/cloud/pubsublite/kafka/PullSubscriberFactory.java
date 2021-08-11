@@ -19,10 +19,12 @@ package com.google.cloud.pubsublite.kafka;
 import com.google.cloud.pubsublite.Partition;
 import com.google.cloud.pubsublite.internal.BlockingPullSubscriber;
 import com.google.cloud.pubsublite.internal.CheckedApiException;
+import com.google.cloud.pubsublite.internal.wire.SubscriberResetHandler;
 import com.google.cloud.pubsublite.proto.SeekRequest;
 
 /** A factory for making new PullSubscribers for a given partition of a subscription. */
 interface PullSubscriberFactory {
-  BlockingPullSubscriber newPullSubscriber(Partition partition, SeekRequest initial)
+  BlockingPullSubscriber newPullSubscriber(
+      Partition partition, SeekRequest initial, SubscriberResetHandler resetHandler)
       throws CheckedApiException;
 }
