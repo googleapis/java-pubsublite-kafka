@@ -209,7 +209,7 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
     consumer = Optional.of(consumerFactory.newConsumer());
     try {
       assigner = Optional.of(assignerFactory.New(newAssignmentReceiver(consumerRebalanceListener)));
-      assigner.get().startAsync();
+      assigner.get().startAsync().awaitRunning();
     } catch (ApiException e) {
       throw toKafka(e);
     }

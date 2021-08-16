@@ -42,6 +42,7 @@ import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.internal.CheckedApiException;
 import com.google.cloud.pubsublite.internal.CursorClient;
 import com.google.cloud.pubsublite.internal.TopicStatsClient;
+import com.google.cloud.pubsublite.internal.testing.FakeApiService;
 import com.google.cloud.pubsublite.internal.testing.UnitTestExamples;
 import com.google.cloud.pubsublite.internal.wire.Assigner;
 import com.google.cloud.pubsublite.internal.wire.AssignerFactory;
@@ -80,6 +81,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 @RunWith(JUnit4.class)
 public class PubsubLiteConsumerTest {
@@ -112,7 +114,9 @@ public class PubsubLiteConsumerTest {
   @Mock AdminClient adminClient;
   @Mock TopicStatsClient topicStatsClient;
 
-  @Mock Assigner assigner;
+  abstract static class FakeAssigner extends FakeApiService implements Assigner {}
+
+  @Spy FakeAssigner assigner;
   @Mock SingleSubscriptionConsumer underlying;
 
   Consumer<byte[], byte[]> consumer;
@@ -305,6 +309,7 @@ public class PubsubLiteConsumerTest {
     verify(consumerFactory).newConsumer();
     verify(assignerFactory).New(any());
     verify(assigner).startAsync();
+    verify(assigner).awaitRunning();
     receiver.get().handleAssignment(ImmutableSet.of(Partition.of(5)));
     verify(listener)
         .onPartitionsAssigned(
