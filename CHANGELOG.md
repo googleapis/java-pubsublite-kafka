@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.6.3](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.2...v0.6.3) (2021-08-16)
+
+
+### Bug Fixes
+
+* Fail hard in subscribe() call on assignment failure ([#197](https://www.github.com/googleapis/java-pubsublite-kafka/issues/197)) ([4d15dcc](https://www.github.com/googleapis/java-pubsublite-kafka/commit/4d15dcce8587bdfc1fc173433f0075aaadaec64e))
+
 ### [0.6.2](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.1...v0.6.2) (2021-08-12)
 
 
