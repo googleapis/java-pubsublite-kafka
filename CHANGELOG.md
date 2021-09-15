@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.6.5](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.4...v0.6.5) (2021-09-15)
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.1.0 ([#214](https://www.github.com/googleapis/java-pubsublite-kafka/issues/214)) ([a2c495a](https://www.github.com/googleapis/java-pubsublite-kafka/commit/a2c495a51e7dd244b7081e246ebb18bffbefcfe1))
+
 ### [0.6.4](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.3...v0.6.4) (2021-09-13)
 
 
