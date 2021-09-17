@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.6.7](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.6...v0.6.7) (2021-09-17)
+
+
+### Dependencies
+
+* update dependency org.apache.kafka:kafka-clients to v2.8.1 ([#222](https://www.github.com/googleapis/java-pubsublite-kafka/issues/222)) ([b9cd630](https://www.github.com/googleapis/java-pubsublite-kafka/commit/b9cd63000819a7726fa7ecc4f154e2485a96d494))
+
 ### [0.6.6](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.5...v0.6.6) (2021-09-16)
 
 
