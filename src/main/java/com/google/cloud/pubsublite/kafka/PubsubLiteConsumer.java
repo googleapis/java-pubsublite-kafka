@@ -590,13 +590,15 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
   @Override
   public void pause(Collection<TopicPartition> collection) {
     logger.atWarning().log(
-        "Calling pause on a Pub/Sub Lite Consumer is a no-op. Configure the amount of outstanding bytes and messages instead.");
+        "Calling pause on a Pub/Sub Lite Consumer is a no-op. Configure the amount of outstanding"
+            + " bytes and messages instead.");
   }
 
   @Override
   public void resume(Collection<TopicPartition> collection) {
     logger.atWarning().log(
-        "Calling resume on a Pub/Sub Lite Consumer is a no-op. Configure the amount of outstanding bytes and messages instead.");
+        "Calling resume on a Pub/Sub Lite Consumer is a no-op. Configure the amount of outstanding"
+            + " bytes and messages instead.");
   }
 
   @Override
