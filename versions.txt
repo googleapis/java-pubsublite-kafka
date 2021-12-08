@@ -1,4 +1,4 @@
 # Format:
 # module:released-version:current-version
 
-pubsublite-kafka:0.6.8:0.6.8
+pubsublite-kafka:0.6.8:0.6.9-SNAPSHOT
