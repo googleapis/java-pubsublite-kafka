@@ -1,5 +1,21 @@
 # Changelog
 
+### [0.6.8](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.7...v0.6.8) (2021-12-08)
+
+
+### Bug Fixes
+
+* **java:** add -ntp flag to native image testing command ([#1299](https://www.github.com/googleapis/java-pubsublite-kafka/issues/1299)) ([#249](https://www.github.com/googleapis/java-pubsublite-kafka/issues/249)) ([1a363a7](https://www.github.com/googleapis/java-pubsublite-kafka/commit/1a363a7dd7b2271413f3f28ea3bd282bbe9988c8))
+* **java:** java 17 dependency arguments ([#1266](https://www.github.com/googleapis/java-pubsublite-kafka/issues/1266)) ([#239](https://www.github.com/googleapis/java-pubsublite-kafka/issues/239)) ([da2edd8](https://www.github.com/googleapis/java-pubsublite-kafka/commit/da2edd8835ffc7c1ab41018e669f80aff533100f))
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.3.0 ([#234](https://www.github.com/googleapis/java-pubsublite-kafka/issues/234)) ([c1eb682](https://www.github.com/googleapis/java-pubsublite-kafka/commit/c1eb68244a59cc0005448b953c062546f884a74a))
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.4.0 ([#245](https://www.github.com/googleapis/java-pubsublite-kafka/issues/245)) ([a74c679](https://www.github.com/googleapis/java-pubsublite-kafka/commit/a74c679f43d0cbb874d72f490f8cff293f458b54))
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.4.1 ([#250](https://www.github.com/googleapis/java-pubsublite-kafka/issues/250)) ([03bc31f](https://www.github.com/googleapis/java-pubsublite-kafka/commit/03bc31f9e167fc5daa16691575ae883c048fc8ba))
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.4.2 ([#252](https://www.github.com/googleapis/java-pubsublite-kafka/issues/252)) ([c93bfd7](https://www.github.com/googleapis/java-pubsublite-kafka/commit/c93bfd7784d69f8469d95fbb9490fc0189a8d4fd))
+
 ### [0.6.7](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.6...v0.6.7) (2021-09-17)
 
 
