@@ -13,5 +13,6 @@
   "repo_short": "java-pubsublite-kafka",
   "distribution_name": "com.google.cloud:pubsublite-kafka",
   "codeowner_team": "@googleapis/api-pubsublite",
+  "library_type": "AGENT",
   "api_id": "pubsublite.googleapis.com"
 }
