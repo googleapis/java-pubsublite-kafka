@@ -1,5 +1,65 @@
 # Changelog
 
+### [0.6.9](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.8...v0.6.9) (2021-12-17)
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.4.3 ([#255](https://www.github.com/googleapis/java-pubsublite-kafka/issues/255)) ([6007f40](https://www.github.com/googleapis/java-pubsublite-kafka/commit/6007f4038940a0af7fb4c48a977baa9fc08d0573))
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.4.5 ([#257](https://www.github.com/googleapis/java-pubsublite-kafka/issues/257)) ([2f8134d](https://www.github.com/googleapis/java-pubsublite-kafka/commit/2f8134dfbbd4a37c9366dbbd21a937ab87a4c566))
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.4.6 ([#258](https://www.github.com/googleapis/java-pubsublite-kafka/issues/258)) ([bada241](https://www.github.com/googleapis/java-pubsublite-kafka/commit/bada2416df2cc6fcb950a9e370d639e08550e5ba))
+
+### [0.6.8](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.7...v0.6.8) (2021-12-08)
+
+
+### Bug Fixes
+
+* **java:** add -ntp flag to native image testing command ([#1299](https://www.github.com/googleapis/java-pubsublite-kafka/issues/1299)) ([#249](https://www.github.com/googleapis/java-pubsublite-kafka/issues/249)) ([1a363a7](https://www.github.com/googleapis/java-pubsublite-kafka/commit/1a363a7dd7b2271413f3f28ea3bd282bbe9988c8))
+* **java:** java 17 dependency arguments ([#1266](https://www.github.com/googleapis/java-pubsublite-kafka/issues/1266)) ([#239](https://www.github.com/googleapis/java-pubsublite-kafka/issues/239)) ([da2edd8](https://www.github.com/googleapis/java-pubsublite-kafka/commit/da2edd8835ffc7c1ab41018e669f80aff533100f))
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.3.0 ([#234](https://www.github.com/googleapis/java-pubsublite-kafka/issues/234)) ([c1eb682](https://www.github.com/googleapis/java-pubsublite-kafka/commit/c1eb68244a59cc0005448b953c062546f884a74a))
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.4.0 ([#245](https://www.github.com/googleapis/java-pubsublite-kafka/issues/245)) ([a74c679](https://www.github.com/googleapis/java-pubsublite-kafka/commit/a74c679f43d0cbb874d72f490f8cff293f458b54))
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.4.1 ([#250](https://www.github.com/googleapis/java-pubsublite-kafka/issues/250)) ([03bc31f](https://www.github.com/googleapis/java-pubsublite-kafka/commit/03bc31f9e167fc5daa16691575ae883c048fc8ba))
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.4.2 ([#252](https://www.github.com/googleapis/java-pubsublite-kafka/issues/252)) ([c93bfd7](https://www.github.com/googleapis/java-pubsublite-kafka/commit/c93bfd7784d69f8469d95fbb9490fc0189a8d4fd))
+
+### [0.6.7](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.6...v0.6.7) (2021-09-17)
+
+
+### Dependencies
+
+* update dependency org.apache.kafka:kafka-clients to v2.8.1 ([#222](https://www.github.com/googleapis/java-pubsublite-kafka/issues/222)) ([b9cd630](https://www.github.com/googleapis/java-pubsublite-kafka/commit/b9cd63000819a7726fa7ecc4f154e2485a96d494))
+
+### [0.6.6](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.5...v0.6.6) (2021-09-16)
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.2.0 ([#218](https://www.github.com/googleapis/java-pubsublite-kafka/issues/218)) ([356cc36](https://www.github.com/googleapis/java-pubsublite-kafka/commit/356cc36381c4748af394406033cddff995556b19))
+
+### [0.6.5](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.4...v0.6.5) (2021-09-15)
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.1.0 ([#214](https://www.github.com/googleapis/java-pubsublite-kafka/issues/214)) ([a2c495a](https://www.github.com/googleapis/java-pubsublite-kafka/commit/a2c495a51e7dd244b7081e246ebb18bffbefcfe1))
+
+### [0.6.4](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.3...v0.6.4) (2021-09-13)
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.0.6 ([#208](https://www.github.com/googleapis/java-pubsublite-kafka/issues/208)) ([812dcba](https://www.github.com/googleapis/java-pubsublite-kafka/commit/812dcba0fcb02047d2341bbe4ba76bb029518069))
+
+### [0.6.3](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.2...v0.6.3) (2021-08-16)
+
+
+### Bug Fixes
+
+* Fail hard in subscribe() call on assignment failure ([#197](https://www.github.com/googleapis/java-pubsublite-kafka/issues/197)) ([4d15dcc](https://www.github.com/googleapis/java-pubsublite-kafka/commit/4d15dcce8587bdfc1fc173433f0075aaadaec64e))
+
 ### [0.6.2](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.1...v0.6.2) (2021-08-12)
 
 
