@@ -35,6 +35,7 @@ import com.google.cloud.pubsublite.proto.Cursor;
 import com.google.cloud.pubsublite.proto.SeekRequest;
 import com.google.cloud.pubsublite.proto.SeekRequest.NamedTarget;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.GoogleLogger;
@@ -79,6 +80,7 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
   private final AssignerFactory assignerFactory;
   private final CursorClient cursorClient;
   private final TopicStatsClient topicStatsClient;
+  private final List<AutoCloseable> toClose;
   private Optional<Assigner> assigner = Optional.empty();
   private Optional<SingleSubscriptionConsumer> consumer = Optional.empty();
 
@@ -89,7 +91,8 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
       ConsumerFactory consumerFactory,
       AssignerFactory assignerFactory,
       CursorClient cursorClient,
-      TopicStatsClient topicStatsClient) {
+      TopicStatsClient topicStatsClient,
+      AutoCloseable... resources) {
     this.subscriptionPath = subscriptionPath;
     this.topicPath = topicPath;
     this.shared = shared;
@@ -97,6 +100,13 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
     this.assignerFactory = assignerFactory;
     this.cursorClient = cursorClient;
     this.topicStatsClient = topicStatsClient;
+    this.toClose =
+        ImmutableList.<AutoCloseable>builder()
+            .add(resources)
+            .add(cursorClient)
+            .add(topicStatsClient)
+            .add(shared)
+            .build();
   }
 
   private TopicPartition toTopicPartition(Partition partition) {
@@ -558,23 +568,15 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
 
   @Override
   public void close(Duration timeout) {
-    try {
-      cursorClient.close();
-    } catch (Exception e) {
-      logger.atSevere().withCause(e).log("Error closing cursor client during Consumer shutdown.");
-    }
-    try {
-      topicStatsClient.close();
-    } catch (Exception e) {
-      logger.atSevere().withCause(e).log(
-          "Error closing topic stats client during Consumer shutdown.");
-    }
-    try {
-      shared.close();
-    } catch (Exception e) {
-      logger.atSevere().withCause(e).log("Error closing admin client during Consumer shutdown.");
-    }
     unsubscribe();
+    for (AutoCloseable closeable : toClose) {
+      try {
+        closeable.close();
+      } catch (Exception e) {
+        logger.atSevere().withCause(e).log(
+            "Error closing %s during Consumer shutdown.", closeable.getClass().getSimpleName());
+      }
+    }
   }
 
   @Override
