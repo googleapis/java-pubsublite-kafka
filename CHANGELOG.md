@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.6.10](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.9...v0.6.10) (2021-12-29)
+
+
+### Bug Fixes
+
+* Version bump Pub/Sub Lite and make fixes to not create many channels ([#263](https://www.github.com/googleapis/java-pubsublite-kafka/issues/263)) ([e21ff5d](https://www.github.com/googleapis/java-pubsublite-kafka/commit/e21ff5db0250c6cb7b304ae44f43435e18e68247))
+
 ### [0.6.9](https://www.github.com/googleapis/java-pubsublite-kafka/compare/v0.6.8...v0.6.9) (2021-12-17)
 
 
