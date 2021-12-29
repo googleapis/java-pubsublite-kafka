@@ -17,7 +17,10 @@
 package com.google.cloud.pubsublite.kafka;
 
 import static com.google.cloud.pubsublite.internal.ExtractStatus.toCanonical;
+import static com.google.cloud.pubsublite.internal.wire.ServiceClients.addDefaultSettings;
+import static com.google.cloud.pubsublite.internal.wire.ServiceClients.getCallContext;
 
+import com.google.api.gax.rpc.ApiCallContext;
 import com.google.api.gax.rpc.ApiException;
 import com.google.auto.value.AutoValue;
 import com.google.cloud.pubsublite.AdminClient;
@@ -127,6 +130,9 @@ public abstract class ConsumerSettings {
               throw toCanonical(t).underlying;
             }
           };
+      SubscriberServiceClient subscriberServiceClient =
+          SubscriberServiceClient.create(
+              ServiceClients.addDefaultSettings(region, SubscriberServiceSettings.newBuilder()));
       PullSubscriberFactory pullSubscriberFactory =
           (partition, initialSeek, resetHandler) -> {
             SubscriberFactory subscriberFactory =
@@ -136,14 +142,16 @@ public abstract class ConsumerSettings {
                         .setPartition(partition)
                         .setSubscriptionPath(subscriptionPath())
                         .setMessageConsumer(consumer)
-                        .setServiceClient(
-                            SubscriberServiceClient.create(
-                                ServiceClients.addDefaultSettings(
-                                    region,
-                                    ServiceClients.addDefaultMetadata(
-                                        PubsubContext.of(FRAMEWORK),
-                                        RoutingMetadata.of(subscriptionPath(), partition),
-                                        SubscriberServiceSettings.newBuilder()))))
+                        .setStreamFactory(
+                            responseStream -> {
+                              ApiCallContext context =
+                                  getCallContext(
+                                      PubsubContext.of(FRAMEWORK),
+                                      RoutingMetadata.of(subscriptionPath(), partition));
+                              return subscriberServiceClient
+                                  .subscribeCallable()
+                                  .splitCall(responseStream, context);
+                            })
                         .setInitialLocation(initialSeek)
                         .setResetHandler(resetHandler)
                         .build();
@@ -154,16 +162,22 @@ public abstract class ConsumerSettings {
             return new BlockingPullSubscriberImpl(
                 subscriberFactory, perPartitionFlowControlSettings());
           };
+      CursorServiceClient cursorServiceClient =
+          CursorServiceClient.create(
+              addDefaultSettings(
+                  subscriptionPath().location().extractRegion(),
+                  CursorServiceSettings.newBuilder()));
       CommitterFactory committerFactory =
           partition -> {
             try {
               return CommitterSettings.newBuilder()
                   .setSubscriptionPath(subscriptionPath())
                   .setPartition(partition)
-                  .setServiceClient(
-                      CursorServiceClient.create(
-                          ServiceClients.addDefaultSettings(
-                              region, CursorServiceSettings.newBuilder())))
+                  .setStreamFactory(
+                      responseStream ->
+                          cursorServiceClient
+                              .streamingCommitCursorCallable()
+                              .splitCall(responseStream))
                   .build()
                   .instantiate();
             } catch (Throwable t) {
@@ -189,7 +203,9 @@ public abstract class ConsumerSettings {
           consumerFactory,
           assignerFactory,
           cursorClient,
-          topicStatsClient);
+          topicStatsClient,
+          cursorServiceClient,
+          subscriberServiceClient);
     } catch (Exception e) {
       throw toCanonical(e).underlying;
     }
