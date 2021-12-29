@@ -78,8 +78,7 @@ public abstract class ProducerSettings {
     PublisherServiceClient client = newServiceClient();
     return new PartitionPublisherFactory() {
       @Override
-      public Publisher<MessageMetadata> newPublisher(
-          Partition partition) throws ApiException {
+      public Publisher<MessageMetadata> newPublisher(Partition partition) throws ApiException {
         SinglePartitionPublisherBuilder.Builder singlePartitionBuilder =
             SinglePartitionPublisherBuilder.newBuilder()
                 .setTopic(topicPath())
