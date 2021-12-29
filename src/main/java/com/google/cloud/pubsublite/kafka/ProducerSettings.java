@@ -29,8 +29,13 @@ import com.google.cloud.pubsublite.AdminClientSettings;
 import com.google.cloud.pubsublite.MessageMetadata;
 import com.google.cloud.pubsublite.Partition;
 import com.google.cloud.pubsublite.TopicPath;
-import com.google.cloud.pubsublite.internal.wire.*;
+import com.google.cloud.pubsublite.internal.Publisher;
+import com.google.cloud.pubsublite.internal.wire.PartitionCountWatchingPublisherSettings;
+import com.google.cloud.pubsublite.internal.wire.PartitionPublisherFactory;
+import com.google.cloud.pubsublite.internal.wire.PubsubContext;
 import com.google.cloud.pubsublite.internal.wire.PubsubContext.Framework;
+import com.google.cloud.pubsublite.internal.wire.RoutingMetadata;
+import com.google.cloud.pubsublite.internal.wire.SinglePartitionPublisherBuilder;
 import com.google.cloud.pubsublite.v1.PublisherServiceClient;
 import com.google.cloud.pubsublite.v1.PublisherServiceSettings;
 import org.apache.kafka.clients.producer.Producer;
@@ -73,7 +78,7 @@ public abstract class ProducerSettings {
     PublisherServiceClient client = newServiceClient();
     return new PartitionPublisherFactory() {
       @Override
-      public com.google.cloud.pubsublite.internal.Publisher<MessageMetadata> newPublisher(
+      public Publisher<MessageMetadata> newPublisher(
           Partition partition) throws ApiException {
         SinglePartitionPublisherBuilder.Builder singlePartitionBuilder =
             SinglePartitionPublisherBuilder.newBuilder()
