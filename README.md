@@ -22,20 +22,20 @@ If you are using Maven, add this to your pom.xml file:
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>pubsublite-kafka</artifactId>
-  <version>0.6.9</version>
+  <version>0.6.10</version>
 </dependency>
 ```
 
 If you are using Gradle without BOM, add this to your dependencies
 
 ```Groovy
-implementation 'com.google.cloud:pubsublite-kafka:0.6.9'
+implementation 'com.google.cloud:pubsublite-kafka:0.6.10'
 ```
 
 If you are using SBT, add this to your dependencies
 
 ```Scala
-libraryDependencies += "com.google.cloud" % "pubsublite-kafka" % "0.6.9"
+libraryDependencies += "com.google.cloud" % "pubsublite-kafka" % "0.6.10"
 ```
 
 ## Authentication
