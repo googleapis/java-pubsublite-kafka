@@ -22,20 +22,20 @@ If you are using Maven, add this to your pom.xml file:
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>pubsublite-kafka</artifactId>
-  <version>0.6.10</version>
+  <version>0.6.11</version>
 </dependency>
 ```
 
 If you are using Gradle without BOM, add this to your dependencies
 
 ```Groovy
-implementation 'com.google.cloud:pubsublite-kafka:0.6.10'
+implementation 'com.google.cloud:pubsublite-kafka:0.6.11'
 ```
 
 If you are using SBT, add this to your dependencies
 
 ```Scala
-libraryDependencies += "com.google.cloud" % "pubsublite-kafka" % "0.6.10"
+libraryDependencies += "com.google.cloud" % "pubsublite-kafka" % "0.6.11"
 ```
 
 ## Authentication
@@ -268,7 +268,7 @@ Java is a registered trademark of Oracle and/or its affiliates.
 [kokoro-badge-link-4]: http://storage.googleapis.com/cloud-devrel-public/java/badges/java-pubsublite-kafka/java8-win.html
 [kokoro-badge-image-5]: http://storage.googleapis.com/cloud-devrel-public/java/badges/java-pubsublite-kafka/java11.svg
 [kokoro-badge-link-5]: http://storage.googleapis.com/cloud-devrel-public/java/badges/java-pubsublite-kafka/java11.html
-[stability-image]: https://img.shields.io/badge/stability-beta-yellow
+[stability-image]: https://img.shields.io/badge/stability-preview-yellow
 [maven-version-image]: https://img.shields.io/maven-central/v/com.google.cloud/pubsublite-kafka.svg
 [maven-version-link]: https://search.maven.org/search?q=g:com.google.cloud%20AND%20a:pubsublite-kafka&core=gav
 [authentication]: https://github.com/googleapis/google-cloud-java#authentication
