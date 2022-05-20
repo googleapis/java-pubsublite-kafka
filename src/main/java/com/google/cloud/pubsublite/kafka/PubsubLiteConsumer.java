@@ -47,6 +47,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -250,10 +251,6 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
     consumer = Optional.empty();
   }
 
-  private static Duration toDuration(long l, TimeUnit timeUnit) {
-    return Duration.ofMillis(TimeUnit.MILLISECONDS.convert(l, timeUnit));
-  }
-
   @Override
   public ConsumerRecords<byte[], byte[]> poll(long l) {
     return poll(Duration.ofMillis(l));
@@ -433,11 +430,9 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
               .get(timeout.toMillis(), TimeUnit.MILLISECONDS);
       ImmutableMap.Builder<TopicPartition, OffsetAndMetadata> output = ImmutableMap.builder();
       targets.forEach(
-          partition -> {
-            output.put(
-                toTopicPartition(partition),
-                new OffsetAndMetadata(full_map.getOrDefault(partition, Offset.of(0)).value()));
-          });
+          partition -> output.put(
+              toTopicPartition(partition),
+              new OffsetAndMetadata(full_map.getOrDefault(partition, Offset.of(0)).value())));
       return output.build();
     } catch (Throwable t) {
       throw toKafka(t);
@@ -483,7 +478,7 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
           map.entrySet().stream()
               .collect(
                   Collectors.toMap(
-                      entry -> entry.getKey(),
+                      Map.Entry::getKey,
                       entry ->
                           topicStatsClient.computeCursorForEventTime(
                               topicPath,
@@ -562,11 +557,6 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
   }
 
   @Override
-  public void close(long l, TimeUnit timeUnit) {
-    close(toDuration(l, timeUnit));
-  }
-
-  @Override
   public void close(Duration timeout) {
     unsubscribe();
     for (AutoCloseable closeable : toClose) {
@@ -604,6 +594,12 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
   @Override
   public void enforceRebalance() {
     logger.atWarning().log("Calling enforceRebalance on a Pub/Sub Lite Consumer is a no-op.");
+  }
+
+  @Override
+  public OptionalLong currentLag(TopicPartition topicPartition) {
+    logger.atWarning().log("Calling currentLag on a Pub/Sub Lite Consumer always returns empty.");
+    return OptionalLong.empty();
   }
 
   @Override

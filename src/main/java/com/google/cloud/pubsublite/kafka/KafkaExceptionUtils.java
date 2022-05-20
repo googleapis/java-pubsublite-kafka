@@ -63,8 +63,9 @@ class KafkaExceptionUtils {
         return new KafkaException("Unimplemented.", source);
       case UNKNOWN:
         return new KafkaException("Unknown.", source);
+      default:
+        return new KafkaException("No case.", source);
     }
-    return new KafkaException("No case.", source);
   }
 
   /**

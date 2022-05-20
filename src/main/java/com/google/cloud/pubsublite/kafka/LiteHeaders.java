@@ -48,12 +48,6 @@ class LiteHeaders implements Headers {
     };
   }
 
-  private static List<Header> toHeaders(String key, Collection<ByteString> values) {
-    ImmutableList.Builder<Header> headersBuilder = ImmutableList.builder();
-    values.forEach(value -> headersBuilder.add(toHeader(key, value)));
-    return headersBuilder.build();
-  }
-
   @Override
   public Headers add(Header header) throws IllegalStateException {
     throw new IllegalStateException();
