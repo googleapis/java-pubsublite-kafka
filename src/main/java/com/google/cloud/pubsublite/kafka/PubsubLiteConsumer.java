@@ -430,9 +430,10 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
               .get(timeout.toMillis(), TimeUnit.MILLISECONDS);
       ImmutableMap.Builder<TopicPartition, OffsetAndMetadata> output = ImmutableMap.builder();
       targets.forEach(
-          partition -> output.put(
-              toTopicPartition(partition),
-              new OffsetAndMetadata(full_map.getOrDefault(partition, Offset.of(0)).value())));
+          partition ->
+              output.put(
+                  toTopicPartition(partition),
+                  new OffsetAndMetadata(full_map.getOrDefault(partition, Offset.of(0)).value())));
       return output.build();
     } catch (Throwable t) {
       throw toKafka(t);

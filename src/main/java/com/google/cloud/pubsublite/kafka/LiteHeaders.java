@@ -21,9 +21,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.protobuf.ByteString;
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
