@@ -103,7 +103,7 @@ public class PubsubLiteConsumerTest {
             .put(TopicPartition.class, exampleTopicPartition())
             .put(OffsetAndMetadata.class, exampleOffsetAndMetadata())
             .build();
-    T instance = (T) map.getInstance(klass);
+    T instance = map.getInstance(klass);
     if (instance != null) return instance;
     return UnitTestExamples.example(klass);
   }

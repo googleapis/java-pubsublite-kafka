@@ -21,9 +21,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.protobuf.ByteString;
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
@@ -46,12 +44,6 @@ class LiteHeaders implements Headers {
         return value.toByteArray();
       }
     };
-  }
-
-  private static List<Header> toHeaders(String key, Collection<ByteString> values) {
-    ImmutableList.Builder<Header> headersBuilder = ImmutableList.builder();
-    values.forEach(value -> headersBuilder.add(toHeader(key, value)));
-    return headersBuilder.build();
   }
 
   @Override

@@ -68,7 +68,7 @@ public abstract class ConsumerSettings {
   abstract Optional<TopicPath> topicPathOverride();
 
   public static Builder newBuilder() {
-    return (new AutoValue_ConsumerSettings.Builder()).setAutocommit(false);
+    return new AutoValue_ConsumerSettings.Builder().setAutocommit(false);
   }
 
   @AutoValue.Builder
