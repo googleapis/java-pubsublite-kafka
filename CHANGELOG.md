@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.7.0](https://github.com/googleapis/java-pubsublite-kafka/compare/v0.6.11...v0.7.0) (2022-05-25)
+## [1.0.0](https://github.com/googleapis/java-pubsublite-kafka/compare/v0.6.11...v1.0.0) (2022-05-25)
 
 
 ### Features
