@@ -43,12 +43,12 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>pubsublite-kafka</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
-      <version>3.2.0</version>
+      <version>3.1.0</version>
     </dependency>
   <!-- {x-version-update-end} -->
 
