@@ -17,12 +17,10 @@
 import synthtool.languages.java as java
 
 java.common_templates(
-    java.common_templates(
         excludes=[
             ".kokoro/build.sh",
             ".github/sync-repo-settings.yaml",
             ".kokoro/presubmit/samples.cfg",
             ".kokoro/nightly/samples.cfg",
         ]
-    )
 )
