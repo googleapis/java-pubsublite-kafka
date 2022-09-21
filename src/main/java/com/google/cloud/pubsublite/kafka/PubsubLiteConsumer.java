@@ -598,6 +598,11 @@ class PubsubLiteConsumer implements Consumer<byte[], byte[]> {
   }
 
   @Override
+  public void enforceRebalance(String reason) {
+    logger.atWarning().log("Calling enforceRebalance on a Pub/Sub Lite Consumer is a no-op.");
+  }
+
+  @Override
   public OptionalLong currentLag(TopicPartition topicPartition) {
     logger.atWarning().log("Calling currentLag on a Pub/Sub Lite Consumer always returns empty.");
     return OptionalLong.empty();
