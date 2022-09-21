@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.1](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.0.0...v1.0.1) (2022-09-21)
+
+
+### Bug Fixes
+
+* Enable longpaths support for windows test ([#1485](https://github.com/googleapis/java-pubsublite-kafka/issues/1485)) ([#333](https://github.com/googleapis/java-pubsublite-kafka/issues/333)) ([a433dfb](https://github.com/googleapis/java-pubsublite-kafka/commit/a433dfbf843ec6d45730e7a7be9e19818dc0ebc9))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.6.1 ([#331](https://github.com/googleapis/java-pubsublite-kafka/issues/331)) ([03281fd](https://github.com/googleapis/java-pubsublite-kafka/commit/03281fd049b179eaea9e901be3a89dd99bf0c31b))
+* Update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.6.3 ([#336](https://github.com/googleapis/java-pubsublite-kafka/issues/336)) ([7f8673b](https://github.com/googleapis/java-pubsublite-kafka/commit/7f8673b2319ac03efb64c0ef2c3930d662b4bd86))
+* Update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.7.0 ([#340](https://github.com/googleapis/java-pubsublite-kafka/issues/340)) ([06a376e](https://github.com/googleapis/java-pubsublite-kafka/commit/06a376e8256a98dedeea941bd4c3a5a197378ebf))
+* Update dependency org.apache.kafka:kafka-clients to v3.1.0 ([#226](https://github.com/googleapis/java-pubsublite-kafka/issues/226)) ([578af21](https://github.com/googleapis/java-pubsublite-kafka/commit/578af21c0b168057240e89d5d80ea3138d7857b9))
+* Version bump kafka to the latest version ([#341](https://github.com/googleapis/java-pubsublite-kafka/issues/341)) ([a2875bc](https://github.com/googleapis/java-pubsublite-kafka/commit/a2875bc8a74b9259a8a618fdfe0eb0c1316987d8))
+
 ## [1.0.0](https://github.com/googleapis/java-pubsublite-kafka/compare/v0.6.11...v1.0.0) (2022-05-25)
 
 
