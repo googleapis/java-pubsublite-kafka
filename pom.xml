@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>com.google.cloud</groupId>
+    <artifactId>google-cloud-pubsublite-parent</artifactId>
+    <version>1.8.0</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.google.cloud</groupId>
+  <artifactId>pubsublite-kafka-parent</artifactId>
+  <version>1.0.3-SNAPSHOT</version><!-- {x-version-update:pubsublite-kafka:current} -->
+  <packaging>pom</packaging>
+  <name>Pub/Sub Lite Kafka Parent</name>
+  <url>https://github.com/googleapis/java-pubsublite-kafka</url>
+  <description>Parent POM for Pub/Sub Lite Kafka Integrations</description>
+  <modules>
+    <module>pubsublite-kafka</module>
+  </modules>
+  <properties>
+    <psl.version>1.8.0</psl.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.api.grpc</groupId>
+        <artifactId>proto-google-cloud-pubsublite-v1</artifactId>
+        <version>${psl.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>google-cloud-pubsublite</artifactId>
+        <version>${psl.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.kafka</groupId>
+        <artifactId>kafka-clients</artifactId>
+        <version>3.3.1</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+</project>
