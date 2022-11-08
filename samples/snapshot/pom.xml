@@ -38,20 +38,19 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
-  <!-- {x-version-update-start::current} -->
   <dependencies>
+    <!-- {x-version-update-start:pubsublite-kafka:current} -->
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>pubsublite-kafka</artifactId>
       <version>1.0.2-SNAPSHOT</version>
     </dependency>
+    <!-- {x-version-update-end} -->
     <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
       <version>3.3.1</version>
     </dependency>
-  <!-- {x-version-update-end} -->
-
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
