@@ -43,6 +43,9 @@ public final class ClientParameters {
     params.put("sasl.mechanism", "OAUTHBEARER");
     params.put("sasl.oauthbearer.token.endpoint.url", AuthServer.ADDRESS.toString());
     params.put("sasl.jaas.config", getJaasConfig(project));
+    params.put(
+        "sasl.login.callback.handler.class",
+        "org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerLoginCallbackHandler");
     return params;
   }
 
