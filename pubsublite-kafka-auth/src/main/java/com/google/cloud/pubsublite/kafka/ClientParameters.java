@@ -41,7 +41,7 @@ public final class ClientParameters {
     params.put("bootstrap.servers", getEndpoint(region));
     params.put("security.protocol", "SASL_SSL");
     params.put("sasl.mechanism", "OAUTHBEARER");
-    params.put("sasl.oauthbearer.token.endpoint.url", AuthServer.ADDRESS.toString());
+    params.put("sasl.oauthbearer.token.endpoint.url", "http://localhost:" + AuthServer.PORT);
     params.put("sasl.jaas.config", getJaasConfig(project));
     params.put(
         "sasl.login.callback.handler.class",
