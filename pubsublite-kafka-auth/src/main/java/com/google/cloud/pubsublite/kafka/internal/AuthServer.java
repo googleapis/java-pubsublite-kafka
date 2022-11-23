@@ -28,21 +28,30 @@ import java.time.Duration;
 import java.time.Instant;
 
 public class AuthServer {
+
   public static int PORT = 14293;
   public static InetSocketAddress ADDRESS =
       new InetSocketAddress(InetAddress.getLoopbackAddress(), PORT);
 
   static {
-    spawn();
+    spawnDaemon();
   }
 
-  private static String getResponse(GoogleCredentials creds) {
+  private static String getResponse(GoogleCredentials creds) throws IOException {
+    creds.refreshIfExpired();
     AccessToken token = creds.getAccessToken();
     long exipiresInSeconds =
         Duration.between(Instant.now(), token.getExpirationTime().toInstant()).getSeconds();
     return String.format(
         "{\"access_token\": \"%s\"," + "\"token_type\": \"bearer\"," + "\"expires_in\": \"%s\"}",
         token.getTokenValue(), exipiresInSeconds);
+  }
+
+  private static void spawnDaemon() {
+    // Run spawn() in a daemon thread so the created threads are themselves daemons.
+    Thread thread = new Thread(AuthServer::spawn);
+    thread.setDaemon(true);
+    thread.start();
   }
 
   private static void spawn() {
