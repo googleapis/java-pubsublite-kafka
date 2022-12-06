@@ -1,3 +1,4 @@
+import base64
 import datetime
 import google.auth
 import google.auth.transport.urllib3
@@ -16,14 +17,35 @@ def valid_credentials():
     return _credentials
 
 
+_HEADER = json.dumps(dict(typ='JWT', alg='GOOG_TOKEN'))
+
+
+def to_millis(dt):
+    return int(dt.timestamp() * 1000)
+
+
+def get_jwt(creds):
+    return json.dumps(dict(exp=to_millis(creds.expiry.timestamp()),
+                           iat=to_millis(datetime.datetime.utcnow()),
+                           scope='pubsub',
+                           sub='unused'))
+
+
+def b64_encode(source):
+    return base64.urlsafe_b64encode(source).decode('utf-8')
+
+
+def get_kafka_access_token(creds):
+    return '.'.join([b64_encode(_HEADER), b64_encode(get_jwt(creds)),
+                     b64_encode(creds.token)])
+
+
 def build_message():
     creds = valid_credentials()
-    expiry_seconds = 3600
-    if creds.expiry:
-        expiry_seconds = (
-            creds.expiry - datetime.datetime.utcnow()).total_seconds()
-    return json.dumps(dict(access_token=creds.token, token_type='bearer',
-                           expires_in=expiry_seconds))
+    expiry_seconds = (creds.expiry - datetime.datetime.utcnow()).total_seconds()
+    return json.dumps(
+        dict(access_token=get_kafka_access_token(creds), token_type='bearer',
+             expires_in=expiry_seconds))
 
 
 class AuthHandler(http.server.BaseHTTPRequestHandler):

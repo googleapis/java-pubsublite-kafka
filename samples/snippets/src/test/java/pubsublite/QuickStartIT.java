@@ -169,4 +169,20 @@ public class QuickStartIT {
     ConsumerExample.consumerExample(cloudRegion, zoneId, projectNumber, topicId, subscriptionId);
     assertThat(bout.toString()).contains("Received 10 messages.");
   }
+
+  @Test
+  public void testKafkaPublish() throws ExecutionException, InterruptedException {
+    bout.reset();
+    KafkaProducerExample.kafkaProducerExample(cloudRegion, zoneId, projectNumber, topicId);
+    assertThat(bout.toString())
+        .contains(
+            String.format(
+                "Published 10 messages to projects/%s/locations/%s-%s/topics/%s",
+                projectNumber, cloudRegion, zoneId, topicId));
+
+    bout.reset();
+    // Subscribe.
+    ConsumerExample.consumerExample(cloudRegion, zoneId, projectNumber, topicId, subscriptionId);
+    assertThat(bout.toString()).contains("Received 10 messages.");
+  }
 }

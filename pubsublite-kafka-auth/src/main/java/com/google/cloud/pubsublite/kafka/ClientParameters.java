@@ -50,7 +50,7 @@ public final class ClientParameters {
   }
 
   private static String getEndpoint(CloudRegion region) {
-    return region.value() + "-kafka-pubsub.googleapis.com";
+    return region.value() + "-kafka-pubsub.googleapis.com:443";
   }
 
   private static String getJaasConfig(ProjectIdOrNumber project) {

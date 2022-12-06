@@ -48,6 +48,11 @@
       <version>1.0.3</version>
     </dependency>
     <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>pubsublite-kafka-auth</artifactId>
+      <version>1.0.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
       <version>3.3.1</version>

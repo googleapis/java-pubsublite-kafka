@@ -20,21 +20,49 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 
 public class AuthServer {
-
   public static int PORT = 14293;
   public static InetSocketAddress ADDRESS =
       new InetSocketAddress(InetAddress.getLoopbackAddress(), PORT);
 
+  private static final String HEADER =
+      new Gson().toJson(ImmutableMap.of("typ", "JWT", "alg", "GOOG_TOKEN"));
+
   static {
     spawnDaemon();
+  }
+
+  private static String b64Encode(String data) {
+    return Base64.getUrlEncoder().encodeToString(data.getBytes(UTF_8));
+  }
+
+  private static String getJwt(AccessToken token) {
+    return new Gson()
+        .toJson(
+            ImmutableMap.of(
+                "exp",
+                token.getExpirationTime().toInstant().toEpochMilli(),
+                "iat",
+                System.currentTimeMillis(),
+                "scope",
+                "pubsub",
+                "sub",
+                "unused"));
+  }
+
+  private static String getKafkaAccessToken(AccessToken token) {
+    return String.join(
+        ".", b64Encode(HEADER), b64Encode(getJwt(token)), b64Encode(token.getTokenValue()));
   }
 
   private static String getResponse(GoogleCredentials creds) throws IOException {
@@ -42,9 +70,15 @@ public class AuthServer {
     AccessToken token = creds.getAccessToken();
     long exipiresInSeconds =
         Duration.between(Instant.now(), token.getExpirationTime().toInstant()).getSeconds();
-    return String.format(
-        "{\"access_token\": \"%s\"," + "\"token_type\": \"bearer\"," + "\"expires_in\": \"%s\"}",
-        token.getTokenValue(), exipiresInSeconds);
+    return new Gson()
+        .toJson(
+            ImmutableMap.of(
+                "access_token",
+                getKafkaAccessToken(token),
+                "token_type",
+                "bearer",
+                "expires_in",
+                Long.toString(exipiresInSeconds)));
   }
 
   private static void spawnDaemon() {
