@@ -16,7 +16,7 @@
 
 package pubsublite;
 
-// [START pubsublite_kafka_producer]
+// [START pubsublite_kafka_native_producer]
 import com.google.cloud.pubsublite.CloudRegion;
 import com.google.cloud.pubsublite.CloudZone;
 import com.google.cloud.pubsublite.ProjectNumber;
@@ -82,4 +82,4 @@ public class KafkaProducerExample {
     System.out.printf("Published 10 messages to %s%n", topicPath);
   }
 }
-// [END pubsublite_kafka_producer]
+// [END pubsublite_kafka_native_producer]
