@@ -101,7 +101,8 @@ public class AuthServer {
             handler.close();
           });
       server.start();
-    } catch (IOException e) {
+    } catch (Exception e) {
+      e.printStackTrace();
       throw new RuntimeException(e);
     }
   }
