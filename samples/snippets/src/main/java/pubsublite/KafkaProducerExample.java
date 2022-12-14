@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,13 +37,13 @@ public class KafkaProducerExample {
 
   public static void main(String... args) throws Exception {
     // TODO(developer): Replace these variables before running the sample.
-    String cloudRegion = "us-central1";
-    char zoneId = 'a';
+    String cloudRegion = "your-cloud-region";
+    char zoneId = 'b';
     // Use an existing Pub/Sub Lite topic.
-    String topicId = "dpcollins-beam-schema-test";
+    String topicId = "your-topic-id";
     // Using the project number is required for constructing a Pub/Sub Lite
     // topic path that the Kafka producer can use.
-    long projectNumber = Long.parseLong("129988248131");
+    long projectNumber = Long.parseLong("123456789");
 
     kafkaProducerExample(cloudRegion, zoneId, projectNumber, topicId);
   }
