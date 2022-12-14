@@ -51,9 +51,9 @@ public class AuthServer {
         .toJson(
             ImmutableMap.of(
                 "exp",
-                token.getExpirationTime().toInstant().toEpochMilli(),
+                token.getExpirationTime().toInstant().getEpochSecond(),
                 "iat",
-                System.currentTimeMillis(),
+                Instant.now().getEpochSecond(),
                 "scope",
                 "pubsub",
                 "sub",

@@ -20,19 +20,15 @@ def valid_credentials():
 _HEADER = json.dumps(dict(typ='JWT', alg='GOOG_TOKEN'))
 
 
-def to_millis(dt):
-    return int(dt.timestamp() * 1000)
-
-
 def get_jwt(creds):
-    return json.dumps(dict(exp=to_millis(creds.expiry.timestamp()),
-                           iat=to_millis(datetime.datetime.utcnow()),
+    return json.dumps(dict(exp=creds.expiry.timestamp(),
+                           iat=datetime.datetime.utcnow().timestamp(),
                            scope='pubsub',
                            sub='unused'))
 
 
 def b64_encode(source):
-    return base64.urlsafe_b64encode(source).decode('utf-8')
+    return base64.urlsafe_b64encode(source.encode('utf-8')).decode('utf-8')
 
 
 def get_kafka_access_token(creds):
@@ -49,11 +45,17 @@ def build_message():
 
 
 class AuthHandler(http.server.BaseHTTPRequestHandler):
-    def do_GET(self):
+    def _handle(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/plain')
         self.end_headers()
         self.wfile.write(build_message().encode('utf-8'))
+
+    def do_GET(self):
+        self._handle()
+
+    def do_POST(self):
+        self._handle()
 
 
 def run_server():
