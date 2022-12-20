@@ -24,6 +24,8 @@ import com.google.cloud.pubsublite.AdminClientSettings;
 import com.google.cloud.pubsublite.CloudRegion;
 import com.google.cloud.pubsublite.CloudZone;
 import com.google.cloud.pubsublite.ProjectNumber;
+import com.google.cloud.pubsublite.ReservationName;
+import com.google.cloud.pubsublite.ReservationPath;
 import com.google.cloud.pubsublite.SubscriptionName;
 import com.google.cloud.pubsublite.SubscriptionPath;
 import com.google.cloud.pubsublite.TopicName;
@@ -33,6 +35,7 @@ import com.google.cloud.pubsublite.proto.Subscription.DeliveryConfig;
 import com.google.cloud.pubsublite.proto.Subscription.DeliveryConfig.DeliveryRequirement;
 import com.google.cloud.pubsublite.proto.Topic;
 import com.google.cloud.pubsublite.proto.Topic.PartitionConfig;
+import com.google.cloud.pubsublite.proto.Topic.ReservationConfig;
 import com.google.cloud.pubsublite.proto.Topic.RetentionConfig;
 import com.google.protobuf.util.Durations;
 import java.io.ByteArrayOutputStream;
@@ -46,15 +49,18 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class QuickStartIT {
+
   private ByteArrayOutputStream bout;
   private PrintStream out;
   private PrintStream console;
   Random rand = new Random();
 
-  private static final Long projectNumber =
-      Long.parseLong(System.getenv("GOOGLE_CLOUD_PROJECT_NUMBER"));
-  private String cloudRegion = "us-central1";
+  private static final ProjectNumber projectNumber =
+      ProjectNumber.of(Long.parseLong(System.getenv("GOOGLE_CLOUD_PROJECT_NUMBER")));
+  private final CloudRegion cloudRegion = CloudRegion.of("us-central1");
   private final char zoneId = (char) (rand.nextInt(3) + 'a');
+
+  private final CloudZone cloudZone = CloudZone.of(cloudRegion, zoneId);
   private static final String suffix = UUID.randomUUID().toString();
   private static final String topicId = "lite-topic-" + suffix;
   private static final String subscriptionId = "lite-subscription-" + suffix;
@@ -72,10 +78,14 @@ public class QuickStartIT {
 
   @Before
   public void setUp() throws Exception {
+    ReservationPath reservationPath = ReservationPath.newBuilder().setProject(projectNumber)
+        .setLocation(cloudRegion).setName(
+            ReservationName.of("java-pubsublite-kafka-reservation")).build();
+
     TopicPath topicPath =
         TopicPath.newBuilder()
-            .setProject(ProjectNumber.of(projectNumber))
-            .setLocation(CloudZone.of(CloudRegion.of(cloudRegion), zoneId))
+            .setProject(projectNumber)
+            .setLocation(cloudZone)
             .setName(TopicName.of(topicId))
             .build();
 
@@ -83,22 +93,19 @@ public class QuickStartIT {
         Topic.newBuilder()
             .setPartitionConfig(
                 PartitionConfig.newBuilder()
-                    .setCapacity(
-                        PartitionConfig.Capacity.newBuilder()
-                            .setPublishMibPerSec(4)
-                            .setSubscribeMibPerSec(4)
-                            .build())
                     .setCount(1))
             .setRetentionConfig(
                 RetentionConfig.newBuilder()
                     .setPeriod(Durations.fromDays(1))
                     .setPerPartitionBytes(30 * 1024 * 1024 * 1024L))
+            .setReservationConfig(
+                ReservationConfig.newBuilder().setThroughputReservation(reservationPath.toString()))
             .setName(topicPath.toString())
             .build();
     SubscriptionPath subscriptionPath =
         SubscriptionPath.newBuilder()
-            .setLocation(CloudZone.of(CloudRegion.of(cloudRegion), zoneId))
-            .setProject(ProjectNumber.of(projectNumber))
+            .setLocation(cloudZone)
+            .setProject(projectNumber)
             .setName(SubscriptionName.of(subscriptionId))
             .build();
 
@@ -112,7 +119,7 @@ public class QuickStartIT {
             .build();
 
     AdminClientSettings adminClientSettings =
-        AdminClientSettings.newBuilder().setRegion(CloudRegion.of(cloudRegion)).build();
+        AdminClientSettings.newBuilder().setRegion(cloudRegion).build();
     try (AdminClient adminClient = AdminClient.create(adminClientSettings)) {
       adminClient.createTopic(topic).get();
       adminClient.createSubscription(subscription).get();
@@ -131,20 +138,20 @@ public class QuickStartIT {
     System.setOut(console);
     TopicPath topicPath =
         TopicPath.newBuilder()
-            .setProject(ProjectNumber.of(projectNumber))
-            .setLocation(CloudZone.of(CloudRegion.of(cloudRegion), zoneId))
+            .setProject(projectNumber)
+            .setLocation(cloudZone)
             .setName(TopicName.of(topicId))
             .build();
 
     SubscriptionPath subscriptionPath =
         SubscriptionPath.newBuilder()
-            .setLocation(CloudZone.of(CloudRegion.of(cloudRegion), zoneId))
-            .setProject(ProjectNumber.of(projectNumber))
+            .setLocation(cloudZone)
+            .setProject(projectNumber)
             .setName(SubscriptionName.of(subscriptionId))
             .build();
 
     AdminClientSettings adminClientSettings =
-        AdminClientSettings.newBuilder().setRegion(CloudRegion.of(cloudRegion)).build();
+        AdminClientSettings.newBuilder().setRegion(cloudRegion).build();
 
     try (AdminClient adminClient = AdminClient.create(adminClientSettings)) {
       adminClient.deleteTopic(topicPath).get();
@@ -157,32 +164,35 @@ public class QuickStartIT {
 
     bout.reset();
     // Publish.
-    ProducerExample.producerExample(cloudRegion, zoneId, projectNumber, topicId);
+    ProducerExample.producerExample(cloudRegion.value(), zoneId, projectNumber.value(), topicId);
     assertThat(bout.toString())
         .contains(
             String.format(
                 "Published 10 messages to projects/%s/locations/%s-%s/topics/%s",
-                projectNumber, cloudRegion, zoneId, topicId));
+                projectNumber.value(), cloudRegion.value(), zoneId, topicId));
 
     bout.reset();
     // Subscribe.
-    ConsumerExample.consumerExample(cloudRegion, zoneId, projectNumber, topicId, subscriptionId);
+    ConsumerExample.consumerExample(cloudRegion.value(), zoneId, projectNumber.value(), topicId,
+        subscriptionId);
     assertThat(bout.toString()).contains("Received 10 messages.");
   }
 
   @Test
   public void testKafkaPublish() throws ExecutionException, InterruptedException {
     bout.reset();
-    KafkaProducerExample.kafkaProducerExample(cloudRegion, zoneId, projectNumber, topicId);
+    KafkaProducerExample.kafkaProducerExample(cloudRegion.value(), zoneId, projectNumber.value(),
+        topicId);
     assertThat(bout.toString())
         .contains(
             String.format(
                 "Published 10 messages to projects/%s/locations/%s-%s/topics/%s",
-                projectNumber, cloudRegion, zoneId, topicId));
+                projectNumber.value(), cloudRegion.value(), zoneId, topicId));
 
     bout.reset();
     // Subscribe.
-    ConsumerExample.consumerExample(cloudRegion, zoneId, projectNumber, topicId, subscriptionId);
+    ConsumerExample.consumerExample(cloudRegion.value(), zoneId, projectNumber.value(), topicId,
+        subscriptionId);
     assertThat(bout.toString()).contains("Received 10 messages.");
   }
 }

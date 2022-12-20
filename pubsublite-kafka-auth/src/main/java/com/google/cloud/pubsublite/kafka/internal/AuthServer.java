@@ -102,7 +102,7 @@ public class AuthServer {
           });
       server.start();
     } catch (Exception e) {
-      e.printStackTrace();
+      e.printStackTrace(System.err);
       throw new RuntimeException(e);
     }
   }
