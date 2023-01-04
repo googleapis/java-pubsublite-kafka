@@ -51,7 +51,7 @@ public class KafkaProducerExample {
   private static void recursivePrintStack(Throwable e) {
     e.printStackTrace(System.err);
     for (Throwable t : e.getSuppressed()) {
-      e.printStackTrace(System.err);
+      t.printStackTrace(System.err);
     }
   }
 
