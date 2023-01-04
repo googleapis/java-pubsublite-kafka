@@ -51,7 +51,7 @@ public class KafkaProducerExample {
   private static void recursivePrintStack(Throwable e) {
     e.printStackTrace(System.err);
     for (Throwable t : e.getSuppressed()) {
-      recursivePrintStack(t);
+      e.printStackTrace(System.err);
     }
   }
 
@@ -85,8 +85,9 @@ public class KafkaProducerExample {
         RecordMetadata meta = future.get();
         System.out.println(meta.offset());
       }
-    } catch (Throwable t) {
+    } catch (RuntimeException t) {
       recursivePrintStack(t);
+      throw t;
     }
     System.out.printf("Published 10 messages to %s%n", topicPath);
   }
