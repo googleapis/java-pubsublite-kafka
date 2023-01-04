@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.0.3...v1.0.4) (2023-01-04)
+
+
+### Dependencies
+
+* Update psl.version to v1.9.2 ([#367](https://github.com/googleapis/java-pubsublite-kafka/issues/367)) ([96b094b](https://github.com/googleapis/java-pubsublite-kafka/commit/96b094b26511039de3ba0b2eb0d07b140c0bbbab))
+
 ## [1.0.3](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.0.2...v1.0.3) (2022-12-20)
 
 
