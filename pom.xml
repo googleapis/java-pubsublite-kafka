@@ -17,7 +17,7 @@
     <module>pubsublite-kafka</module>
   </modules>
   <properties>
-    <psl.version>1.8.0</psl.version>
+    <psl.version>1.9.2</psl.version>
   </properties>
 
   <dependencyManagement>
