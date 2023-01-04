@@ -48,6 +48,13 @@ public class KafkaProducerExample {
     kafkaProducerExample(cloudRegion, zoneId, projectNumber, topicId);
   }
 
+  private static void recursivePrintStack(Throwable e) {
+    e.printStackTrace(System.err);
+    for (Throwable t : e.getSuppressed()) {
+      recursivePrintStack(t);
+    }
+  }
+
   public static void kafkaProducerExample(
       String cloudRegion, char zoneId, long projectNumber, String topicId)
       throws InterruptedException, ExecutionException {
@@ -78,6 +85,8 @@ public class KafkaProducerExample {
         RecordMetadata meta = future.get();
         System.out.println(meta.offset());
       }
+    } catch (Throwable t) {
+      recursivePrintStack(t);
     }
     System.out.printf("Published 10 messages to %s%n", topicPath);
   }
