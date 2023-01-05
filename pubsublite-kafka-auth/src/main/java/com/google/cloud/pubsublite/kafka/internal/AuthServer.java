@@ -17,6 +17,7 @@
 package com.google.cloud.pubsublite.kafka.internal;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singletonList;
 
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -96,6 +97,7 @@ public class AuthServer {
           "/",
           handler -> {
             String response = getResponse(creds);
+            handler.getResponseHeaders().put("Content-type", singletonList("text/plain"));
             handler.sendResponseHeaders(200, response.length());
             handler.getResponseBody().write(response.getBytes(UTF_8));
             handler.close();
