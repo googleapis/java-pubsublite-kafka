@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.0.4...v1.1.0) (2023-01-06)
+
+
+### Features
+
+* Add pubsublite-kafka-auth module ([#363](https://github.com/googleapis/java-pubsublite-kafka/issues/363)) ([6c99767](https://github.com/googleapis/java-pubsublite-kafka/commit/6c99767e4ba841ec0d45e20a7f07003e2f7e3a42))
+
+
+### Bug Fixes
+
+* Update pom to add comment ([#378](https://github.com/googleapis/java-pubsublite-kafka/issues/378)) ([f658ed3](https://github.com/googleapis/java-pubsublite-kafka/commit/f658ed353da2bd60d31a451f751f116378e22c2c))
+
 ## [1.0.4](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.0.3...v1.0.4) (2023-01-04)
 
 
