@@ -15,6 +15,7 @@
   <description>Parent POM for Pub/Sub Lite Kafka Integrations</description>
   <modules>
     <module>pubsublite-kafka</module>
+    <module>pubsublite-kafka-auth</module>
   </modules>
   <properties>
     <psl.version>1.9.2</psl.version>
