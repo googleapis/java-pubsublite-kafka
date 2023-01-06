@@ -79,9 +79,12 @@ public class QuickStartIT {
 
   @Before
   public void setUp() throws Exception {
-    ReservationPath reservationPath = ReservationPath.newBuilder().setProject(projectNumber)
-        .setLocation(cloudRegion).setName(
-            ReservationName.of("java-pubsublite-kafka-reservation")).build();
+    ReservationPath reservationPath =
+        ReservationPath.newBuilder()
+            .setProject(projectNumber)
+            .setLocation(cloudRegion)
+            .setName(ReservationName.of("java-pubsublite-kafka-reservation"))
+            .build();
 
     TopicPath topicPath =
         TopicPath.newBuilder()
@@ -92,9 +95,7 @@ public class QuickStartIT {
 
     Topic topic =
         Topic.newBuilder()
-            .setPartitionConfig(
-                PartitionConfig.newBuilder()
-                    .setCount(1))
+            .setPartitionConfig(PartitionConfig.newBuilder().setCount(1))
             .setRetentionConfig(
                 RetentionConfig.newBuilder()
                     .setPeriod(Durations.fromDays(1))
@@ -175,16 +176,16 @@ public class QuickStartIT {
 
     bout.reset();
     // Subscribe.
-    ConsumerExample.consumerExample(cloudRegion.value(), zoneId, projectNumber.value(), topicId,
-        subscriptionId);
+    ConsumerExample.consumerExample(
+        cloudRegion.value(), zoneId, projectNumber.value(), topicId, subscriptionId);
     assertThat(bout.toString()).contains("Received 10 messages.");
   }
 
   @Test
   public void testKafkaPublish() throws ExecutionException, InterruptedException {
     bout.reset();
-    KafkaProducerExample.kafkaProducerExample(cloudRegion.value(), zoneId, projectNumber.value(),
-        topicId);
+    KafkaProducerExample.kafkaProducerExample(
+        cloudRegion.value(), zoneId, projectNumber.value(), topicId);
     assertThat(bout.toString())
         .contains(
             String.format(
@@ -193,8 +194,8 @@ public class QuickStartIT {
 
     bout.reset();
     // Subscribe.
-    ConsumerExample.consumerExample(cloudRegion.value(), zoneId, projectNumber.value(), topicId,
-        subscriptionId);
+    ConsumerExample.consumerExample(
+        cloudRegion.value(), zoneId, projectNumber.value(), topicId, subscriptionId);
     assertThat(bout.toString()).contains("Received 10 messages.");
   }
 }

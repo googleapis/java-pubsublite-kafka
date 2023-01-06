@@ -64,8 +64,9 @@ public class KafkaProducerExample {
     properties.putAll(ClientParameters.getProducerParams(project, location.region()));
 
     List<Future<RecordMetadata>> futures = new ArrayList<>();
-    try (KafkaProducer<byte[], byte[]> producer = new KafkaProducer<>(properties.build(),
-        new ByteArraySerializer(), new ByteArraySerializer())) {
+    try (KafkaProducer<byte[], byte[]> producer =
+        new KafkaProducer<>(
+            properties.build(), new ByteArraySerializer(), new ByteArraySerializer())) {
       for (long i = 0L; i < 10L; i++) {
         String key = "demo";
         Future<RecordMetadata> future =
