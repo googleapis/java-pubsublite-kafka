@@ -96,10 +96,10 @@ public class AuthServer {
       server.createContext(
           "/",
           handler -> {
-            String response = getResponse(creds);
+            byte[] response = getResponse(creds).getBytes(UTF_8);
             handler.getResponseHeaders().put("Content-type", singletonList("text/plain"));
-            handler.sendResponseHeaders(200, response.length());
-            handler.getResponseBody().write(response.getBytes(UTF_8));
+            handler.sendResponseHeaders(200, response.length);
+            handler.getResponseBody().write(response);
             handler.close();
           });
       server.start();
