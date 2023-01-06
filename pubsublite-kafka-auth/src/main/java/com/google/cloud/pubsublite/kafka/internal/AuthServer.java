@@ -91,7 +91,9 @@ public class AuthServer {
 
   private static void spawn() {
     try {
-      GoogleCredentials creds = GoogleCredentials.getApplicationDefault();
+      GoogleCredentials creds =
+          GoogleCredentials.getApplicationDefault()
+              .createScoped("https://www.googleapis.com/auth/cloud-platform");
       HttpServer server = HttpServer.create(ADDRESS, 0);
       server.createContext(
           "/",
