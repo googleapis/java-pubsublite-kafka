@@ -96,11 +96,16 @@ public class AuthServer {
       server.createContext(
           "/",
           handler -> {
-            byte[] response = getResponse(creds).getBytes(UTF_8);
-            handler.getResponseHeaders().put("Content-type", singletonList("text/plain"));
-            handler.sendResponseHeaders(200, response.length);
-            handler.getResponseBody().write(response);
-            handler.close();
+            try {
+              byte[] response = getResponse(creds).getBytes(UTF_8);
+              handler.getResponseHeaders().put("Content-type", singletonList("text/plain"));
+              handler.sendResponseHeaders(200, response.length);
+              handler.getResponseBody().write(response);
+              handler.close();
+            } catch (Exception e) {
+              e.printStackTrace(System.err);
+              throw new RuntimeException(e);
+            }
           });
       server.start();
     } catch (Exception e) {
