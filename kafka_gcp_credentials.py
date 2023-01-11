@@ -6,7 +6,7 @@ import http.server
 import json
 import urllib3
 
-_credentials, _project = google.auth.default()
+_credentials, _project = google.auth.default(scopes=['https://www.googleapis.com/auth/cloud-platform'])
 _http_client = urllib3.PoolManager()
 
 
