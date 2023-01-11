@@ -47,7 +47,7 @@ def build_message():
 class AuthHandler(http.server.BaseHTTPRequestHandler):
     def _handle(self):
         self.send_response(200)
-        self.send_header('Content-type', 'text/json')
+        self.send_header('Content-type', 'application/json')
         self.end_headers()
         self.wfile.write(build_message().encode('utf-8'))
 
