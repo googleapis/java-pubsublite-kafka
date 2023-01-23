@@ -38,6 +38,8 @@ public final class ClientParameters {
       ProjectIdOrNumber project, CloudRegion region) {
     HashMap<String, Object> params = new HashMap<>();
     params.put("enable.idempotence", false);
+    // While ENABLE_IDEMPOTENCE_CONFIG is false, this must be 1 to preserver ordering.
+    params.put("max.in.flight.requests.per.connection", 1);
     params.put("bootstrap.servers", getEndpoint(region));
     params.put("security.protocol", "SASL_SSL");
     params.put("sasl.mechanism", "OAUTHBEARER");
