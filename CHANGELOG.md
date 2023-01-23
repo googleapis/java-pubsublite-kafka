@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.1.0...v1.1.1) (2023-01-23)
+
+
+### Bug Fixes
+
+* Set max.in.flight.requests.per.connection to 1 ([#391](https://github.com/googleapis/java-pubsublite-kafka/issues/391)) ([62800a8](https://github.com/googleapis/java-pubsublite-kafka/commit/62800a8be098bce8e9a023a478213a14bb98ae81))
+
 ## [1.1.0](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.0.4...v1.1.0) (2023-01-06)
 
 
