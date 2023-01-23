@@ -3,12 +3,12 @@
   <parent>
     <groupId>com.google.cloud</groupId>
     <artifactId>pubsublite-kafka-parent</artifactId>
-    <version>1.1.1</version><!-- {x-version-update:pubsublite-kafka:current} -->
+    <version>1.1.2-SNAPSHOT</version><!-- {x-version-update:pubsublite-kafka:current} -->
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.cloud</groupId>
   <artifactId>pubsublite-kafka-auth</artifactId>
-  <version>1.1.1</version><!-- {x-version-update:pubsublite-kafka:current} -->
+  <version>1.1.2-SNAPSHOT</version><!-- {x-version-update:pubsublite-kafka:current} -->
   <packaging>jar</packaging>
   <name>Pub/Sub Lite Kafka Auth</name>
   <url>https://github.com/googleapis/java-pubsublite-kafka</url>
