@@ -16,19 +16,22 @@
 
 package com.google.cloud.pubsublite.kafka;
 
+import com.google.cloud.pubsublite.proto.AttributeValues;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.protobuf.ByteString;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
 class LiteHeaders implements Headers {
-  private ImmutableListMultimap<String, ByteString> attributes;
+  private Map<String, AttributeValues> attributes;
 
-  LiteHeaders(ImmutableListMultimap<String, ByteString> attributes) {
+  LiteHeaders(Map<String, AttributeValues> attributes) {
     this.attributes = attributes;
   }
 
@@ -68,23 +71,24 @@ class LiteHeaders implements Headers {
 
   @Override
   public Iterable<Header> headers(String s) {
-    if (attributes.containsKey(s))
-      return Iterables.transform(attributes.get(s), value -> toHeader(s, value));
-    return ImmutableList.of();
+    @Nullable AttributeValues values = attributes.get(s);
+    if (values == null) {
+      return ImmutableList.of();
+    }
+    return values.getValuesList().stream().map(v -> toHeader(s, v)).collect(Collectors.toList());
   }
 
   @Override
   public Header[] toArray() {
-    ImmutableList.Builder<Header> arrayBuilder = ImmutableList.builder();
-    attributes
-        .entries()
-        .forEach(entry -> arrayBuilder.add(toHeader(entry.getKey(), entry.getValue())));
-    return (Header[]) arrayBuilder.build().toArray();
+    return Iterators.toArray(iterator(), Header.class);
   }
 
   @Override
   public Iterator<Header> iterator() {
-    return Iterators.transform(
-        attributes.entries().iterator(), entry -> toHeader(entry.getKey(), entry.getValue()));
+    return attributes.entrySet().stream()
+        .flatMap(
+            entry ->
+                entry.getValue().getValuesList().stream().map(v -> toHeader(entry.getKey(), v)))
+        .iterator();
   }
 }

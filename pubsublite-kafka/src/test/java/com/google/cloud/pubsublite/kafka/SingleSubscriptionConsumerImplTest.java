@@ -31,10 +31,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutures;
 import com.google.api.core.SettableApiFuture;
-import com.google.cloud.pubsublite.Message;
 import com.google.cloud.pubsublite.Offset;
 import com.google.cloud.pubsublite.Partition;
-import com.google.cloud.pubsublite.SequencedMessage;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.internal.BlockingPullSubscriber;
 import com.google.cloud.pubsublite.internal.CheckedApiException;
@@ -44,12 +42,12 @@ import com.google.cloud.pubsublite.internal.wire.SystemExecutors;
 import com.google.cloud.pubsublite.proto.Cursor;
 import com.google.cloud.pubsublite.proto.SeekRequest;
 import com.google.cloud.pubsublite.proto.SeekRequest.NamedTarget;
+import com.google.cloud.pubsublite.proto.SequencedMessage;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
-import com.google.protobuf.Timestamp;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
@@ -102,8 +100,9 @@ public class SingleSubscriptionConsumerImplTest {
   }
 
   private static SequencedMessage message(Offset offset) {
-    return SequencedMessage.of(
-        Message.builder().build(), Timestamp.getDefaultInstance(), Offset.of(offset.value()), 0L);
+    return SequencedMessage.newBuilder()
+        .setCursor(Cursor.newBuilder().setOffset(offset.value()))
+        .build();
   }
 
   private static SequencedMessage message(long offset) {

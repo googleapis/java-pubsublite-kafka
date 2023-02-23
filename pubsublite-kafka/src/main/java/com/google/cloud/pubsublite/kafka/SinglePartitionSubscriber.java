@@ -22,13 +22,13 @@ import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutures;
 import com.google.cloud.pubsublite.Offset;
 import com.google.cloud.pubsublite.Partition;
-import com.google.cloud.pubsublite.SequencedMessage;
 import com.google.cloud.pubsublite.internal.BlockingPullSubscriber;
 import com.google.cloud.pubsublite.internal.CheckedApiException;
 import com.google.cloud.pubsublite.internal.CloseableMonitor;
 import com.google.cloud.pubsublite.internal.ProxyService;
 import com.google.cloud.pubsublite.internal.wire.Committer;
 import com.google.cloud.pubsublite.proto.SeekRequest;
+import com.google.cloud.pubsublite.proto.SequencedMessage;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
@@ -115,7 +115,7 @@ class SinglePartitionSubscriber extends ProxyService {
     try (CloseableMonitor.Hold h = monitor.enter()) {
       ArrayDeque<SequencedMessage> messages = pullMessages();
       if (!messages.isEmpty()) {
-        lastReceived = Optional.of(Iterables.getLast(messages).offset());
+        lastReceived = Optional.of(Offset.of(Iterables.getLast(messages).getCursor().getOffset()));
         needsCommitting = true;
       }
       return messages;

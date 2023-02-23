@@ -16,10 +16,11 @@
 
 package com.google.cloud.pubsublite.kafka;
 
-import com.google.cloud.pubsublite.Message;
 import com.google.cloud.pubsublite.Partition;
-import com.google.cloud.pubsublite.SequencedMessage;
 import com.google.cloud.pubsublite.TopicPath;
+import com.google.cloud.pubsublite.proto.AttributeValues;
+import com.google.cloud.pubsublite.proto.PubSubMessage;
+import com.google.cloud.pubsublite.proto.SequencedMessage;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -32,44 +33,52 @@ import org.apache.kafka.common.record.TimestampType;
 class RecordTransforms {
   private RecordTransforms() {}
 
-  static Message toMessage(ProducerRecord<byte[], byte[]> record) {
-    Message.Builder builder =
-        Message.builder()
+  static PubSubMessage toMessage(ProducerRecord<byte[], byte[]> record) {
+    PubSubMessage.Builder builder =
+        PubSubMessage.newBuilder()
             .setKey(ByteString.copyFrom(record.key()))
             .setData(ByteString.copyFrom(record.value()));
     if (record.timestamp() != null) {
-      builder = builder.setEventTime(Timestamps.fromMillis(record.timestamp()));
+      builder.setEventTime(Timestamps.fromMillis(record.timestamp()));
     }
     ImmutableListMultimap.Builder<String, ByteString> attributes = ImmutableListMultimap.builder();
     record
         .headers()
         .forEach(header -> attributes.put(header.key(), ByteString.copyFrom(header.value())));
-    return builder.setAttributes(attributes.build()).build();
+    attributes
+        .build()
+        .asMap()
+        .forEach(
+            (key, values) ->
+                builder.putAttributes(
+                    key, AttributeValues.newBuilder().addAllValues(values).build()));
+    return builder.build();
   }
 
   static ConsumerRecord<byte[], byte[]> fromMessage(
-      SequencedMessage message, TopicPath topic, Partition partition) {
-    Headers headers = new LiteHeaders(message.message().attributes());
+      SequencedMessage sequenced, TopicPath topic, Partition partition) {
+    PubSubMessage message = sequenced.getMessage();
+    Headers headers = new LiteHeaders(message.getAttributesMap());
     TimestampType type;
     Timestamp timestamp;
-    if (message.message().eventTime().isPresent()) {
+    if (message.hasEventTime()) {
       type = TimestampType.CREATE_TIME;
-      timestamp = message.message().eventTime().get();
+      timestamp = message.getEventTime();
     } else {
       type = TimestampType.LOG_APPEND_TIME;
-      timestamp = message.publishTime();
+      timestamp = sequenced.getPublishTime();
     }
     return new ConsumerRecord<>(
         topic.toString(),
         (int) partition.value(),
-        message.offset().value(),
+        sequenced.getCursor().getOffset(),
         Timestamps.toMillis(timestamp),
         type,
         0L,
-        message.message().key().size(),
-        message.message().data().size(),
-        message.message().key().toByteArray(),
-        message.message().data().toByteArray(),
+        message.getKey().size(),
+        message.getData().size(),
+        message.getKey().toByteArray(),
+        message.getData().toByteArray(),
         headers);
   }
 }

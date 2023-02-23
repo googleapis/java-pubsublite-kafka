@@ -27,7 +27,6 @@ import com.google.api.core.ApiFutures;
 import com.google.api.core.SettableApiFuture;
 import com.google.api.gax.rpc.StatusCode.Code;
 import com.google.cloud.pubsublite.AdminClient;
-import com.google.cloud.pubsublite.Message;
 import com.google.cloud.pubsublite.MessageMetadata;
 import com.google.cloud.pubsublite.Offset;
 import com.google.cloud.pubsublite.Partition;
@@ -36,6 +35,7 @@ import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.internal.CheckedApiException;
 import com.google.cloud.pubsublite.internal.Publisher;
 import com.google.cloud.pubsublite.internal.testing.FakeApiService;
+import com.google.cloud.pubsublite.proto.PubSubMessage;
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -63,7 +63,7 @@ public class PubsubLiteProducerTest {
   private static final ProducerRecord<byte[], byte[]> RECORD =
       new ProducerRecord<>(
           example(TopicPath.class).toString(), "abc".getBytes(), "defg".getBytes());
-  private static final Message MESSAGE = RecordTransforms.toMessage(RECORD);
+  private static final PubSubMessage MESSAGE = RecordTransforms.toMessage(RECORD);
   private static final TopicPartition TOPIC_PARTITION =
       new TopicPartition(
           example(TopicPath.class).toString(), (int) example(Partition.class).value());
