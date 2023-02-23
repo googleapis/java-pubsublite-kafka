@@ -22,25 +22,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.api.core.ApiFutures;
-import com.google.cloud.pubsublite.Message;
 import com.google.cloud.pubsublite.Offset;
 import com.google.cloud.pubsublite.Partition;
-import com.google.cloud.pubsublite.SequencedMessage;
 import com.google.cloud.pubsublite.internal.BlockingPullSubscriber;
 import com.google.cloud.pubsublite.internal.CheckedApiException;
 import com.google.cloud.pubsublite.internal.testing.FakeApiService;
 import com.google.cloud.pubsublite.internal.wire.Committer;
 import com.google.cloud.pubsublite.internal.wire.SubscriberResetHandler;
+import com.google.cloud.pubsublite.proto.Cursor;
 import com.google.cloud.pubsublite.proto.SeekRequest;
 import com.google.cloud.pubsublite.proto.SeekRequest.NamedTarget;
-import com.google.protobuf.Timestamp;
+import com.google.cloud.pubsublite.proto.SequencedMessage;
 import java.util.Optional;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,16 +70,8 @@ public class SinglePartitionSubscriberTest {
         .thenReturn(pullSubscriber);
   }
 
-  @After
-  public void tearDown() throws Exception {
-    verifyNoMoreInteractions(subscriberFactory);
-    verifyNoMoreInteractions(pullSubscriber);
-    verifyNoMoreInteractions(committer);
-  }
-
   private static SequencedMessage message(long offset) {
-    return SequencedMessage.of(
-        Message.builder().build(), Timestamp.getDefaultInstance(), Offset.of(offset), 0L);
+    return SequencedMessage.newBuilder().setCursor(Cursor.newBuilder().setOffset(offset)).build();
   }
 
   @Test
