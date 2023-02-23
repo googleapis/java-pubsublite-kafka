@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.1.2](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.1.1...v1.1.2) (2023-02-23)
+
+
+### Bug Fixes
+
+* Add dependency to fix QuickStartIT failures ([#397](https://github.com/googleapis/java-pubsublite-kafka/issues/397)) ([dc688d7](https://github.com/googleapis/java-pubsublite-kafka/commit/dc688d79fffa58b52f4f8944d40af1fef3fdc206))
+* Upgrade kafka shim pubsublite version ([#405](https://github.com/googleapis/java-pubsublite-kafka/issues/405)) ([278205e](https://github.com/googleapis/java-pubsublite-kafka/commit/278205e5bed4bab993630c5c73d441894d28ddee))
+
+
+### Dependencies
+
+* Update dependency com.fasterxml.jackson.core:jackson-databind to v2.14.2 ([#396](https://github.com/googleapis/java-pubsublite-kafka/issues/396)) ([e99f680](https://github.com/googleapis/java-pubsublite-kafka/commit/e99f680f22fa8481265b11f34f67ad5d49305d04))
+* Update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.11.1 ([#403](https://github.com/googleapis/java-pubsublite-kafka/issues/403)) ([7d99aef](https://github.com/googleapis/java-pubsublite-kafka/commit/7d99aefdff0e70830372cec2c08661194ac3dc4a))
+* Update dependency com.google.cloud:google-cloud-pubsublite-parent to v1.9.4 ([#386](https://github.com/googleapis/java-pubsublite-kafka/issues/386)) ([1a5991d](https://github.com/googleapis/java-pubsublite-kafka/commit/1a5991d6c5483541606ae394537cba5973a9baaa))
+* Update dependency org.apache.kafka:kafka-clients to v3.4.0 ([#388](https://github.com/googleapis/java-pubsublite-kafka/issues/388)) ([253629e](https://github.com/googleapis/java-pubsublite-kafka/commit/253629e6f03a2a89086d3a09fae6f8d3d7918263))
+
 ## [1.1.1](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.1.0...v1.1.1) (2023-01-23)
 
 
