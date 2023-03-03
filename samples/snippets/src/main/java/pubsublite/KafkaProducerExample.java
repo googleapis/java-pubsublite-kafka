@@ -60,7 +60,7 @@ public class KafkaProducerExample {
             .build();
 
     ImmutableMap.Builder<String, Object> properties = ImmutableMap.builder();
-    properties.putAll(ClientParameters.getProducerParams(project, location.region()));
+    properties.putAll(ClientParameters.getParams(project, location.region()));
 
     List<Future<RecordMetadata>> futures = new ArrayList<>();
     try (KafkaProducer<byte[], byte[]> producer =

@@ -26,20 +26,16 @@ import java.util.Map;
 
 /** A class providing the correct parameters for connecting a Kafka client to Pub/Sub Lite. */
 public final class ClientParameters {
-  public static Map<String, Object> getProducerParams(ProjectId project, CloudRegion region) {
-    return getProducerParams(ProjectIdOrNumber.of(project), region);
+  public static Map<String, Object> getParams(ProjectId project, CloudRegion region) {
+    return getParams(ProjectIdOrNumber.of(project), region);
   }
 
-  public static Map<String, Object> getProducerParams(ProjectNumber project, CloudRegion region) {
-    return getProducerParams(ProjectIdOrNumber.of(project), region);
+  public static Map<String, Object> getParams(ProjectNumber project, CloudRegion region) {
+    return getParams(ProjectIdOrNumber.of(project), region);
   }
 
-  public static Map<String, Object> getProducerParams(
-      ProjectIdOrNumber project, CloudRegion region) {
+  public static Map<String, Object> getParams(ProjectIdOrNumber project, CloudRegion region) {
     HashMap<String, Object> params = new HashMap<>();
-    params.put("enable.idempotence", false);
-    // While ENABLE_IDEMPOTENCE_CONFIG is false, this must be 1 to preserver ordering.
-    params.put("max.in.flight.requests.per.connection", 1);
     params.put("bootstrap.servers", getEndpoint(region));
     params.put("security.protocol", "SASL_SSL");
     params.put("sasl.mechanism", "OAUTHBEARER");
