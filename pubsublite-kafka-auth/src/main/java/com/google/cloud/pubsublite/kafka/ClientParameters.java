@@ -34,8 +34,7 @@ public final class ClientParameters {
     return getParams(ProjectIdOrNumber.of(project), region);
   }
 
-  public static Map<String, Object> getParams(
-      ProjectIdOrNumber project, CloudRegion region) {
+  public static Map<String, Object> getParams(ProjectIdOrNumber project, CloudRegion region) {
     HashMap<String, Object> params = new HashMap<>();
     params.put("bootstrap.servers", getEndpoint(region));
     params.put("security.protocol", "SASL_SSL");
