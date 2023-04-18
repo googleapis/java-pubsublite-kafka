@@ -93,7 +93,7 @@ public class AuthServer {
     try {
       GoogleCredentials creds =
           GoogleCredentials.getApplicationDefault()
-              .createScoped("https://www.googleapis.com/auth/cloud-platform");
+              .createScoped("https://www.googleapis.com/auth/pubsub");
       HttpServer server = HttpServer.create(ADDRESS, 0);
       server.createContext(
           "/",
