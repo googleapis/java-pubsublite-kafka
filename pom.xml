@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.google.cloud</groupId>
     <artifactId>google-cloud-pubsublite-parent</artifactId>
-    <version>1.11.1</version>
+    <version>1.12.1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.cloud</groupId>
@@ -18,7 +18,7 @@
     <module>pubsublite-kafka-auth</module>
   </modules>
   <properties>
-    <psl.version>1.11.1</psl.version>
+    <psl.version>1.12.1</psl.version>
   </properties>
 
   <dependencyManagement>
