@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.1.2...v1.2.0) (2024-03-25)
+
+
+### Features
+
+* Update naming of ClientParameters static methods ([#411](https://github.com/googleapis/java-pubsublite-kafka/issues/411)) ([5b53862](https://github.com/googleapis/java-pubsublite-kafka/commit/5b53862937d425c4fb653b3e41c75c12288baab6))
+
+
+### Dependencies
+
+* Upgrade core PSL lib version ([#463](https://github.com/googleapis/java-pubsublite-kafka/issues/463)) ([4d8bf72](https://github.com/googleapis/java-pubsublite-kafka/commit/4d8bf72478d36fe9e342d48488e0e10c8bebfedf))
+
 ## [1.1.2](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.1.1...v1.1.2) (2023-02-23)
 
 
