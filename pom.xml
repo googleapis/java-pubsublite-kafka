@@ -18,7 +18,7 @@
     <module>pubsublite-kafka-auth</module>
   </modules>
   <properties>
-    <psl.version>1.12.1</psl.version>
+    <psl.version>1.13.8</psl.version>
   </properties>
 
   <dependencyManagement>
