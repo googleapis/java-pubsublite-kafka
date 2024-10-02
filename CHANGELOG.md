@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.2.0...v1.2.1) (2024-10-02)
+
+
+### Bug Fixes
+
+* Update kafka-clients to 3.8.0 past snappy CVEs and implement dummy `clientInstanceId` ([#482](https://github.com/googleapis/java-pubsublite-kafka/issues/482)) ([06062a4](https://github.com/googleapis/java-pubsublite-kafka/commit/06062a44449b4e837ca914d3fcbc1ae1e39e6260))
+
 ## [1.2.0](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.1.2...v1.2.0) (2024-03-25)
 
 
