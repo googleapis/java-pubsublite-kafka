@@ -48,6 +48,7 @@ import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.Uuid;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
 
 class PubsubLiteProducer implements Producer<byte[], byte[]> {
@@ -75,6 +76,12 @@ class PubsubLiteProducer implements Producer<byte[], byte[]> {
         },
         MoreExecutors.directExecutor());
     this.publisher.startAsync().awaitRunning();
+  }
+
+  @Override
+  public Uuid clientInstanceId(Duration timeout) {
+    // https://javadoc.io/static/org.apache.kafka/kafka-clients/3.8.0/org/apache/kafka/clients/consumer/KafkaConsumer.html#clientInstanceId-java.time.Duration-
+    throw new IllegalStateException("Pub/Sub Lite Kafka Connector does not support telemetry");
   }
 
   @Override
