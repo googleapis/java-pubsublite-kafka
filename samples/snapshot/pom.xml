@@ -42,12 +42,12 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>pubsublite-kafka</artifactId>
-      <version>1.2.1</version><!-- {x-version-update:pubsublite-kafka:current} -->
+      <version>1.2.2-SNAPSHOT</version><!-- {x-version-update:pubsublite-kafka:current} -->
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>pubsublite-kafka-auth</artifactId>
-      <version>1.2.1</version><!-- {x-version-update:pubsublite-kafka:current} -->
+      <version>1.2.2-SNAPSHOT</version><!-- {x-version-update:pubsublite-kafka:current} -->
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
