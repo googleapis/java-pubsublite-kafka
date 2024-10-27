@@ -31,7 +31,6 @@ import com.google.cloud.pubsublite.proto.SeekRequest;
 import com.google.cloud.pubsublite.proto.SequencedMessage;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.errorprone.annotations.concurrent.GuardedBy;
 import java.util.ArrayDeque;
 import java.util.Optional;
 
@@ -44,13 +43,14 @@ class SinglePartitionSubscriber extends ProxyService {
 
   private final CloseableMonitor monitor = new CloseableMonitor();
 
-  @GuardedBy("monitor.monitor")
+  // New versions of ErrorProne do not recognize CloseableMonitor
+  // @GuardedBy("monitor.monitor")
   private BlockingPullSubscriber subscriber;
 
-  @GuardedBy("monitor.monitor")
+  // @GuardedBy("monitor.monitor")
   private boolean needsCommitting = false;
 
-  @GuardedBy("monitor.monitor")
+  // @GuardedBy("monitor.monitor")
   private Optional<Offset> lastReceived = Optional.empty();
 
   SinglePartitionSubscriber(
@@ -99,7 +99,7 @@ class SinglePartitionSubscriber extends ProxyService {
     }
   }
 
-  @GuardedBy("monitor.monitor")
+  // @GuardedBy("monitor.monitor")
   private ArrayDeque<SequencedMessage> pullMessages() throws CheckedApiException {
     ArrayDeque<SequencedMessage> messages = new ArrayDeque<>();
     for (Optional<SequencedMessage> message = subscriber.messageIfAvailable();

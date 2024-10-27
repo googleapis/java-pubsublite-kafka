@@ -67,11 +67,12 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
 
   private final CloseableMonitor monitor = new CloseableMonitor();
 
-  @GuardedBy("monitor.monitor")
+  // New versions of ErrorProne do not recognize CloseableMonitor
+  // @GuardedBy("monitor.monitor")
   private final Map<Partition, SinglePartitionSubscriber> partitions = new HashMap<>();
   // When the set of assignments changes, this future will be set and swapped with a new future to
   // let ongoing pollers know that they should pick up new assignments.
-  @GuardedBy("monitor.monitor")
+  // @GuardedBy("monitor.monitor")
   private SettableApiFuture<Void> assignmentChanged = SettableApiFuture.create();
 
   // Set when wakeup() has been called once.
