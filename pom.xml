@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.google.cloud</groupId>
     <artifactId>google-cloud-pubsublite-parent</artifactId>
-    <version>1.12.1</version>
+    <version>1.14.5</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.cloud</groupId>
@@ -17,22 +17,9 @@
     <module>pubsublite-kafka</module>
     <module>pubsublite-kafka-auth</module>
   </modules>
-  <properties>
-    <psl.version>1.12.1</psl.version>
-  </properties>
 
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>com.google.api.grpc</groupId>
-        <artifactId>proto-google-cloud-pubsublite-v1</artifactId>
-        <version>${psl.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.cloud</groupId>
-        <artifactId>google-cloud-pubsublite</artifactId>
-        <version>${psl.version}</version>
-      </dependency>
       <dependency>
         <groupId>org.apache.kafka</groupId>
         <artifactId>kafka-clients</artifactId>
@@ -40,4 +27,14 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>com.google.api.grpc</groupId>
+      <artifactId>proto-google-cloud-pubsublite-v1</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-pubsublite</artifactId>
+    </dependency>
+  </dependencies>
 </project>

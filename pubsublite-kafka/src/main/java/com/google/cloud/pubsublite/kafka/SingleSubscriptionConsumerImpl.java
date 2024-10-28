@@ -37,7 +37,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.GoogleLogger;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.errorprone.annotations.concurrent.GuardedBy;
 import java.time.Duration;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -67,11 +66,9 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
 
   private final CloseableMonitor monitor = new CloseableMonitor();
 
-  @GuardedBy("monitor.monitor")
   private final Map<Partition, SinglePartitionSubscriber> partitions = new HashMap<>();
   // When the set of assignments changes, this future will be set and swapped with a new future to
   // let ongoing pollers know that they should pick up new assignments.
-  @GuardedBy("monitor.monitor")
   private SettableApiFuture<Void> assignmentChanged = SettableApiFuture.create();
 
   // Set when wakeup() has been called once.
@@ -89,7 +86,6 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
   }
 
   @Override
-  @SuppressWarnings("GuardedBy")
   public void setAssignment(Set<Partition> assignment) {
     try (CloseableMonitor.Hold h = monitor.enter()) {
 
@@ -214,7 +210,6 @@ class SingleSubscriptionConsumerImpl implements SingleSubscriptionConsumer {
   }
 
   @Override
-  @SuppressWarnings("GuardedBy")
   public ApiFuture<Void> commit(Map<Partition, Offset> commitOffsets) {
     try (CloseableMonitor.Hold h = monitor.enter()) {
       ImmutableList.Builder<ApiFuture<?>> commitFutures = ImmutableList.builder();
