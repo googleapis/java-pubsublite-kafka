@@ -43,14 +43,10 @@ class SinglePartitionSubscriber extends ProxyService {
 
   private final CloseableMonitor monitor = new CloseableMonitor();
 
-  // New versions of ErrorProne do not recognize CloseableMonitor
-  // @GuardedBy("monitor.monitor")
   private BlockingPullSubscriber subscriber;
 
-  // @GuardedBy("monitor.monitor")
   private boolean needsCommitting = false;
 
-  // @GuardedBy("monitor.monitor")
   private Optional<Offset> lastReceived = Optional.empty();
 
   SinglePartitionSubscriber(
@@ -99,7 +95,6 @@ class SinglePartitionSubscriber extends ProxyService {
     }
   }
 
-  // @GuardedBy("monitor.monitor")
   private ArrayDeque<SequencedMessage> pullMessages() throws CheckedApiException {
     ArrayDeque<SequencedMessage> messages = new ArrayDeque<>();
     for (Optional<SequencedMessage> message = subscriber.messageIfAvailable();
