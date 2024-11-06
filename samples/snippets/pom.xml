@@ -60,7 +60,7 @@
     <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
-      <version>3.4.0</version>
+      <version>3.9.0</version>
     </dependency>
     <!-- [END pubsublite-kafka_java_dependencies] -->
     <!-- [END pubsublite-kafka_install_without_bom] -->
