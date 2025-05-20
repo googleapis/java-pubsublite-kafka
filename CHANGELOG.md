@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.3](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.2.2...v1.2.3) (2025-05-20)
+
+
+### Dependencies
+
+* Update gson to 2.13.1 ([#500](https://github.com/googleapis/java-pubsublite-kafka/issues/500)) ([a390bff](https://github.com/googleapis/java-pubsublite-kafka/commit/a390bffab701bf2c644462d0dd806a41f5d1a259))
+* Update kafka-clients to v3.9 ([#499](https://github.com/googleapis/java-pubsublite-kafka/issues/499)) ([9ad9a71](https://github.com/googleapis/java-pubsublite-kafka/commit/9ad9a711c95a45627787ae449629d5003e3b192d))
+
 ## [1.2.2](https://github.com/googleapis/java-pubsublite-kafka/compare/v1.2.1...v1.2.2) (2024-10-29)
 
 
